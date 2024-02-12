@@ -1,0 +1,18 @@
+[package]
+name = "mrot"
+version = "0.1.0"
+edition = "2021"
+authors = ["Sven Siegmund <sven.siegmund@gmail.com>"]
+description = "Meal rotator"
+repository = "https://github.com/fleetingbytes/mrot/"
+license-file = "LICENSE"
+keywords = ["tools", "tracking", "meal", "cooking", "calendar"]
+categories = ["command-line-utilities"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+clap_complete = "4.5"
