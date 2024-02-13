@@ -4,6 +4,7 @@
 
 use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Parser, Subcommand};
 use clap_complete::{generate as generate_completions, shells, Generator};
+use clap_complete_nushell::Nushell;
 use std::io;
 
 #[derive(Parser)]
@@ -242,6 +243,8 @@ enum GenerateCommand {
     Elvish(GenerateElvishArgs),
     /// generate completion file for Fish
     Fish(GenerateFishArgs),
+    /// generate completion file for Nushell
+    Nushell(GenerateNushellArgs),
     /// generate completion file for PowerShell
     PowerShell(GeneratePowerShellArgs),
     /// generate completion file for Zsh
@@ -256,6 +259,9 @@ struct GenerateElvishArgs;
 
 #[derive(Args)]
 struct GenerateFishArgs;
+
+#[derive(Args)]
+struct GenerateNushellArgs;
 
 #[derive(Args)]
 struct GeneratePowerShellArgs;
@@ -365,25 +371,29 @@ pub fn translate_cli_to_api() {
                 println!("config path is run");
             }
         },
-        Command::Generate(generate) => match generate {
-            GenerateCommand::Bash(_) => {
-                println!("generate bash is run");
-                let mut cmd = Cli::command();
-                print_completions(shells::Bash, &mut cmd);
+        Command::Generate(generate) => {
+            let mut cmd = Cli::command();
+            match generate {
+                GenerateCommand::Bash(_) => {
+                    print_completions(shells::Bash, &mut cmd);
+                }
+                GenerateCommand::Elvish(_) => {
+                    print_completions(shells::Elvish, &mut cmd);
+                }
+                GenerateCommand::Fish(_) => {
+                    print_completions(shells::Fish, &mut cmd);
+                }
+                GenerateCommand::Nushell(_) => {
+                    print_completions(Nushell, &mut cmd);
+                }
+                GenerateCommand::PowerShell(_) => {
+                    print_completions(shells::PowerShell, &mut cmd);
+                }
+                GenerateCommand::Zsh(_) => {
+                    print_completions(shells::Zsh, &mut cmd);
+                }
             }
-            GenerateCommand::Elvish(_) => {
-                println!("generate elvish is run");
-            }
-            GenerateCommand::Fish(_) => {
-                println!("generate fish is run");
-            }
-            GenerateCommand::PowerShell(_) => {
-                println!("generate powershell is run");
-            }
-            GenerateCommand::Zsh(_) => {
-                println!("generate zsh is run");
-            }
-        },
+        }
     }
 }
 
