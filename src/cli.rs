@@ -274,7 +274,7 @@ struct GenerateZshArgs;
 const CONFIG_FILE_NAME: &str = "config";
 
 /// Parses the CLI commands and makes the required API calls to execute them
-pub fn translate_cli_to_api() -> Result<(), Error> {
+pub fn run() -> Result<(), Error> {
     let app_name = Cli::command().get_name().to_string();
     let mut cfg: MrotConfig = confy::load(&app_name, CONFIG_FILE_NAME)?;
     let cli = Cli::parse();
