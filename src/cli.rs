@@ -1,14 +1,21 @@
-use clap::{ArgAction::Append, Args, Parser, Subcommand};
+//! CLI for mrot
+
+#![deny(missing_docs)]
+
+use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Parser, Subcommand};
+use clap_complete::{generate as generate_completions, shells, Generator};
+use clap_complete_nushell::Nushell;
+use std::io;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
-pub struct Cli {
+struct Cli {
     #[command(subcommand)]
-    pub command: Command,
+    command: Command,
 }
 
 #[derive(Subcommand)]
-pub enum Command {
+enum Command {
     /// Add records of meals eaten
     Add(AddArgs),
     /// What you haven't eaten in the longest time
@@ -27,26 +34,26 @@ pub enum Command {
 }
 
 #[derive(Args)]
-pub struct AddArgs {
+struct AddArgs {
     /// Meal to add (e.g. "rib eye steak")
-    pub meal: String,
+    meal: String,
     /// Day to add this meal on
     #[arg(short, long, default_value = "today")]
-    pub date: Option<String>,
+    date: Option<String>,
 }
 
 #[derive(Args)]
-pub struct WhatArgs {
+struct WhatArgs {
     /// Limit to a number of suggestions (overrides config)
     #[arg(short, long)]
-    pub number: Option<usize>,
+    number: Option<usize>,
     /// Ignore a certain meal (can use multiple times, overrides config)
     #[arg(short, long, action = Append)]
-    pub ignore: Option<Vec<String>>,
+    ignore: Option<Vec<String>>,
 }
 
 #[derive(Subcommand)]
-pub enum PlanCommand {
+enum PlanCommand {
     /// Plan a meal for the future
     Add(PlanAddArgs),
     /// Show future meal plans
@@ -57,25 +64,25 @@ pub enum PlanCommand {
 }
 
 #[derive(Args)]
-pub struct PlanAddArgs {
+struct PlanAddArgs {
     /// Meal to plan (e.g. "rib eye steak")
-    pub meal: String,
+    meal: String,
     /// Date to plan it on (e.g. "next Sunday")
-    pub date: String,
+    date: String,
 }
 
 #[derive(Args)]
-pub struct PlanShowArgs {
+struct PlanShowArgs {
     /// Limit the number of planned meals to show (overrides config)
     #[arg(short, long)]
-    pub number: Option<usize>,
+    number: Option<usize>,
     /// Show planned meals up to this many days in the future (overrides config)
     #[arg(short, long)]
-    pub days: Option<usize>,
+    days: Option<usize>,
 }
 
 #[derive(Subcommand)]
-pub enum PlanRemoveCommand {
+enum PlanRemoveCommand {
     /// Remove a given meal from planned meals
     Meal(PlanRemoveMealArgs),
     /// Remove the planned meals for a given date
@@ -85,28 +92,28 @@ pub enum PlanRemoveCommand {
 }
 
 #[derive(Args)]
-pub struct PlanRemoveMealArgs {
+struct PlanRemoveMealArgs {
     /// Meal to remove from the planned meals
-    pub meal: String,
+    meal: String,
 }
 
 #[derive(Args)]
-pub struct PlanRemoveDateArgs {
+struct PlanRemoveDateArgs {
     /// Date for which the planned meals should be removed
-    pub date: String,
+    date: String,
 }
 
 #[derive(Args)]
-pub struct PlanRemoveSpanArgs {
+struct PlanRemoveSpanArgs {
     /// Time span for which the planned meals should be removed
-    pub span: String,
+    span: String,
 }
 
 #[derive(Args)]
-pub struct RandomArgs;
+struct RandomArgs;
 
 #[derive(Subcommand)]
-pub enum ConfigCommand {
+enum ConfigCommand {
     /// Set configuration values
     #[command(subcommand)]
     Set(ConfigSetCommand),
@@ -121,7 +128,7 @@ pub enum ConfigCommand {
 }
 
 #[derive(Subcommand)]
-pub enum ConfigSetCommand {
+enum ConfigSetCommand {
     /// Set a limit when suggesting meals
     #[command(subcommand)]
     What(ConfigSetWhatCommand),
@@ -131,19 +138,19 @@ pub enum ConfigSetCommand {
 }
 
 #[derive(Subcommand)]
-pub enum ConfigSetWhatCommand {
+enum ConfigSetWhatCommand {
     /// Set the max number of meals suggested
     Number(ConfigSetWhatNumberArgs),
 }
 
 #[derive(Args)]
-pub struct ConfigSetWhatNumberArgs {
+struct ConfigSetWhatNumberArgs {
     /// Max number of meals to suggest
-    pub number: usize,
+    number: usize,
 }
 
 #[derive(Subcommand)]
-pub enum ConfigSetPlanCommand {
+enum ConfigSetPlanCommand {
     /// Max number of planned meals to show
     Number(ConfigSetPlanNumberArgs),
     /// Limit of days in future for which to show planned meals
@@ -151,19 +158,19 @@ pub enum ConfigSetPlanCommand {
 }
 
 #[derive(Args)]
-pub struct ConfigSetPlanNumberArgs {
+struct ConfigSetPlanNumberArgs {
     /// Max number of planned meals to show
-    pub number: usize,
+    number: usize,
 }
 
 #[derive(Args)]
-pub struct ConfigSetPlanDaysArgs {
+struct ConfigSetPlanDaysArgs {
     /// Planned meals that lie more than this many days in the future won't be shown
-    pub days: usize,
+    days: usize,
 }
 
 #[derive(Subcommand)]
-pub enum ConfigGetCommand {
+enum ConfigGetCommand {
     /// See the configuration for meal suggestions
     #[command(subcommand)]
     What(ConfigGetWhatCommand),
@@ -173,16 +180,16 @@ pub enum ConfigGetCommand {
 }
 
 #[derive(Subcommand)]
-pub enum ConfigGetWhatCommand {
+enum ConfigGetWhatCommand {
     /// Max number of meals to suggest
     Number(ConfigGetWhatNumberArgs),
 }
 
 #[derive(Args)]
-pub struct ConfigGetWhatNumberArgs;
+struct ConfigGetWhatNumberArgs;
 
 #[derive(Subcommand)]
-pub enum ConfigGetPlanCommand {
+enum ConfigGetPlanCommand {
     /// Max number of planned meals to show
     Number(ConfigGetPlanNumberArgs),
     /// Planned meals that lie more than this many days in the future won't be shown
@@ -190,13 +197,13 @@ pub enum ConfigGetPlanCommand {
 }
 
 #[derive(Args)]
-pub struct ConfigGetPlanNumberArgs;
+struct ConfigGetPlanNumberArgs;
 
 #[derive(Args)]
-pub struct ConfigGetPlanDaysArgs;
+struct ConfigGetPlanDaysArgs;
 
 #[derive(Subcommand)]
-pub enum ConfigIgnoreCommand {
+enum ConfigIgnoreCommand {
     /// Add a meal to the ignore list
     Add(ConfigIgnoreAddArgs),
     /// Remove a meal from the ignore list
@@ -208,34 +215,36 @@ pub enum ConfigIgnoreCommand {
 }
 
 #[derive(Args)]
-pub struct ConfigIgnoreAddArgs {
+struct ConfigIgnoreAddArgs {
     /// Meal to add to the ignore list
-    pub meal: String,
+    meal: String,
 }
 
 #[derive(Args)]
-pub struct ConfigIgnoreRemoveArgs {
+struct ConfigIgnoreRemoveArgs {
     /// Meal to remove from the ignore list
-    pub meal: String,
+    meal: String,
 }
 
 #[derive(Args)]
-pub struct ConfigIgnoreShowArgs;
+struct ConfigIgnoreShowArgs;
 
 #[derive(Args)]
-pub struct ConfigIgnoreClearArgs;
+struct ConfigIgnoreClearArgs;
 
 #[derive(Args)]
-pub struct ConfigPathArgs;
+struct ConfigPathArgs;
 
 #[derive(Subcommand)]
-pub enum GenerateCommand {
+enum GenerateCommand {
     /// generate completion file for Bash
     Bash(GenerateBashArgs),
     /// generate completion file for Elvish
     Elvish(GenerateElvishArgs),
     /// generate completion file for Fish
     Fish(GenerateFishArgs),
+    /// generate completion file for Nushell
+    Nushell(GenerateNushellArgs),
     /// generate completion file for PowerShell
     PowerShell(GeneratePowerShellArgs),
     /// generate completion file for Zsh
@@ -243,16 +252,151 @@ pub enum GenerateCommand {
 }
 
 #[derive(Args)]
-pub struct GenerateBashArgs;
+struct GenerateBashArgs;
 
 #[derive(Args)]
-pub struct GenerateElvishArgs;
+struct GenerateElvishArgs;
 
 #[derive(Args)]
-pub struct GenerateFishArgs;
+struct GenerateFishArgs;
 
 #[derive(Args)]
-pub struct GeneratePowerShellArgs;
+struct GenerateNushellArgs;
 
 #[derive(Args)]
-pub struct GenerateZshArgs;
+struct GeneratePowerShellArgs;
+
+#[derive(Args)]
+struct GenerateZshArgs;
+
+/// Parses the CLI commands and makes the required API calls to execute them
+pub fn translate_cli_to_api() {
+    let cli = Cli::parse();
+    match &cli.command {
+        Command::Add(add) => {
+            println!("meal is {}", add.meal);
+            if let Some(ref date) = add.date {
+                println!("meal date is {}", date);
+            }
+        }
+        Command::What(what) => {
+            if let Some(ref number) = what.number {
+                println!("what number is {}", number);
+            }
+            if let Some(ref ignore) = what.ignore {
+                println!("what ignore is {:?}", ignore);
+            }
+            println!("what is run");
+        }
+        Command::Plan(plan) => match plan {
+            PlanCommand::Add(plan_add) => {
+                println!("plan add meal {} on date {}", plan_add.meal, plan_add.date);
+            }
+            PlanCommand::Show(plan_show) => {
+                if let Some(ref number) = plan_show.number {
+                    println!("plan show number is {}", number);
+                }
+                if let Some(ref days) = plan_show.days {
+                    println!("plan show days is {}", days);
+                }
+                println!("plan show is run");
+            }
+            PlanCommand::Remove(plan_remove) => match plan_remove {
+                PlanRemoveCommand::Meal(plan_remove_meal) => {
+                    println!("plan remove meal is {}", plan_remove_meal.meal);
+                }
+                PlanRemoveCommand::Date(plan_remove_date) => {
+                    println!("plan remove date is {}", plan_remove_date.date);
+                }
+                PlanRemoveCommand::Span(plan_remove_span) => {
+                    println!("plan remove span is {}", plan_remove_span.span);
+                }
+            },
+        },
+        Command::Random(_) => {
+            println!("random is run");
+        }
+        Command::Config(config) => match config {
+            ConfigCommand::Set(config_set) => match config_set {
+                ConfigSetCommand::What(config_set_what) => match config_set_what {
+                    ConfigSetWhatCommand::Number(config_set_what_number) => {
+                        println!(
+                            "config set what number is {}",
+                            config_set_what_number.number
+                        );
+                    }
+                },
+                ConfigSetCommand::Plan(config_set_plan) => match config_set_plan {
+                    ConfigSetPlanCommand::Number(config_set_plan_number) => {
+                        println!(
+                            "config set plan number is {}",
+                            config_set_plan_number.number
+                        );
+                    }
+                    ConfigSetPlanCommand::Days(config_set_plan_days) => {
+                        println!("config set plan days is {}", config_set_plan_days.days);
+                    }
+                },
+            },
+            ConfigCommand::Get(config_get) => match config_get {
+                ConfigGetCommand::What(config_get_what) => match config_get_what {
+                    ConfigGetWhatCommand::Number(_) => {
+                        println!("config get what number is run");
+                    }
+                },
+                ConfigGetCommand::Plan(config_get_plan) => match config_get_plan {
+                    ConfigGetPlanCommand::Number(_) => {
+                        println!("config get plan number is run");
+                    }
+                    ConfigGetPlanCommand::Days(_) => {
+                        println!("config get plan days is run");
+                    }
+                },
+            },
+            ConfigCommand::Ignore(config_ignore) => match config_ignore {
+                ConfigIgnoreCommand::Add(config_ignore_add) => {
+                    println!("config ignore add is {}", config_ignore_add.meal);
+                }
+                ConfigIgnoreCommand::Remove(config_ignore_remove) => {
+                    println!("config ignore remove is {}", config_ignore_remove.meal);
+                }
+                ConfigIgnoreCommand::Show(_) => {
+                    println!("config ignore show is run");
+                }
+                ConfigIgnoreCommand::Clear(_) => {
+                    println!("config ignore clear is run");
+                }
+            },
+            ConfigCommand::Path(_) => {
+                println!("config path is run");
+            }
+        },
+        Command::Generate(generate) => {
+            let mut cmd = Cli::command();
+            match generate {
+                GenerateCommand::Bash(_) => {
+                    print_completions(shells::Bash, &mut cmd);
+                }
+                GenerateCommand::Elvish(_) => {
+                    print_completions(shells::Elvish, &mut cmd);
+                }
+                GenerateCommand::Fish(_) => {
+                    print_completions(shells::Fish, &mut cmd);
+                }
+                GenerateCommand::Nushell(_) => {
+                    print_completions(Nushell, &mut cmd);
+                }
+                GenerateCommand::PowerShell(_) => {
+                    print_completions(shells::PowerShell, &mut cmd);
+                }
+                GenerateCommand::Zsh(_) => {
+                    print_completions(shells::Zsh, &mut cmd);
+                }
+            }
+        }
+    }
+}
+
+fn print_completions<G: Generator>(gen: G, cmd: &mut ClapCommand) {
+    generate_completions(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
+}
