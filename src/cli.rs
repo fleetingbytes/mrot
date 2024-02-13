@@ -2,6 +2,8 @@
 
 #![deny(missing_docs)]
 
+use crate::config::MrotConfig;
+use crate::error::Error;
 use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Parser, Subcommand};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
@@ -269,8 +271,12 @@ struct GeneratePowerShellArgs;
 #[derive(Args)]
 struct GenerateZshArgs;
 
+const CONFIG_FILE_NAME: &str = "config";
+
 /// Parses the CLI commands and makes the required API calls to execute them
-pub fn translate_cli_to_api() {
+pub fn translate_cli_to_api() -> Result<(), Error> {
+    let app_name = Cli::command().get_name().to_string();
+    let mut cfg: MrotConfig = confy::load(&app_name, CONFIG_FILE_NAME)?;
     let cli = Cli::parse();
     match &cli.command {
         Command::Add(add) => {
@@ -316,61 +322,66 @@ pub fn translate_cli_to_api() {
         Command::Random(_) => {
             println!("random is run");
         }
-        Command::Config(config) => match config {
-            ConfigCommand::Set(config_set) => match config_set {
-                ConfigSetCommand::What(config_set_what) => match config_set_what {
-                    ConfigSetWhatCommand::Number(config_set_what_number) => {
-                        println!(
-                            "config set what number is {}",
-                            config_set_what_number.number
-                        );
+        Command::Config(config) => {
+            let config_path = confy::get_configuration_file_path(&app_name, CONFIG_FILE_NAME)?;
+            match config {
+                ConfigCommand::Set(config_set) => {
+                    match config_set {
+                        ConfigSetCommand::What(config_set_what) => match config_set_what {
+                            ConfigSetWhatCommand::Number(config_set_what_number) => {
+                                cfg.what.number = config_set_what_number.number;
+                            }
+                        },
+                        ConfigSetCommand::Plan(config_set_plan) => match config_set_plan {
+                            ConfigSetPlanCommand::Number(config_set_plan_number) => {
+                                cfg.plan.number = config_set_plan_number.number;
+                            }
+                            ConfigSetPlanCommand::Days(config_set_plan_days) => {
+                                cfg.plan.days = config_set_plan_days.days;
+                            }
+                        },
+                    }
+                    confy::store(&app_name, CONFIG_FILE_NAME, cfg)?
+                }
+                ConfigCommand::Get(config_get) => match config_get {
+                    ConfigGetCommand::What(config_get_what) => match config_get_what {
+                        ConfigGetWhatCommand::Number(_) => {
+                            println!("{}", cfg.what.number);
+                        }
+                    },
+                    ConfigGetCommand::Plan(config_get_plan) => match config_get_plan {
+                        ConfigGetPlanCommand::Number(_) => {
+                            println!("{}", cfg.plan.number);
+                        }
+                        ConfigGetPlanCommand::Days(_) => {
+                            println!("{}", cfg.plan.days);
+                        }
+                    },
+                },
+                ConfigCommand::Ignore(config_ignore) => match config_ignore {
+                    ConfigIgnoreCommand::Add(config_ignore_add) => {
+                        cfg.ignore.add(&config_ignore_add.meal);
+                        confy::store(&app_name, CONFIG_FILE_NAME, cfg)?
+                    }
+                    ConfigIgnoreCommand::Remove(config_ignore_remove) => {
+                        cfg.ignore.remove(&config_ignore_remove.meal);
+                        confy::store(&app_name, CONFIG_FILE_NAME, cfg)?
+                    }
+                    ConfigIgnoreCommand::Show(_) => {
+                        if !cfg.ignore.is_empty() {
+                            println!("{}", cfg.ignore);
+                        }
+                    }
+                    ConfigIgnoreCommand::Clear(_) => {
+                        cfg.ignore.clear();
+                        confy::store(&app_name, CONFIG_FILE_NAME, cfg)?
                     }
                 },
-                ConfigSetCommand::Plan(config_set_plan) => match config_set_plan {
-                    ConfigSetPlanCommand::Number(config_set_plan_number) => {
-                        println!(
-                            "config set plan number is {}",
-                            config_set_plan_number.number
-                        );
-                    }
-                    ConfigSetPlanCommand::Days(config_set_plan_days) => {
-                        println!("config set plan days is {}", config_set_plan_days.days);
-                    }
-                },
-            },
-            ConfigCommand::Get(config_get) => match config_get {
-                ConfigGetCommand::What(config_get_what) => match config_get_what {
-                    ConfigGetWhatCommand::Number(_) => {
-                        println!("config get what number is run");
-                    }
-                },
-                ConfigGetCommand::Plan(config_get_plan) => match config_get_plan {
-                    ConfigGetPlanCommand::Number(_) => {
-                        println!("config get plan number is run");
-                    }
-                    ConfigGetPlanCommand::Days(_) => {
-                        println!("config get plan days is run");
-                    }
-                },
-            },
-            ConfigCommand::Ignore(config_ignore) => match config_ignore {
-                ConfigIgnoreCommand::Add(config_ignore_add) => {
-                    println!("config ignore add is {}", config_ignore_add.meal);
+                ConfigCommand::Path(_) => {
+                    println!("{}", config_path.into_os_string().into_string()?);
                 }
-                ConfigIgnoreCommand::Remove(config_ignore_remove) => {
-                    println!("config ignore remove is {}", config_ignore_remove.meal);
-                }
-                ConfigIgnoreCommand::Show(_) => {
-                    println!("config ignore show is run");
-                }
-                ConfigIgnoreCommand::Clear(_) => {
-                    println!("config ignore clear is run");
-                }
-            },
-            ConfigCommand::Path(_) => {
-                println!("config path is run");
             }
-        },
+        }
         Command::Generate(generate) => {
             let mut cmd = Cli::command();
             match generate {
@@ -394,7 +405,8 @@ pub fn translate_cli_to_api() {
                 }
             }
         }
-    }
+    };
+    Ok(())
 }
 
 fn print_completions<G: Generator>(gen: G, cmd: &mut ClapCommand) {
