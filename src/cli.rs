@@ -4,6 +4,7 @@
 
 use crate::config::MrotConfig;
 use crate::error::Error;
+use crate::{add_meal, add_plan, open_storage};
 use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Parser, Subcommand};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
@@ -280,10 +281,12 @@ pub fn run() -> Result<(), Error> {
     let cli = Cli::parse();
     match &cli.command {
         Command::Add(add) => {
-            println!("meal is {}", add.meal);
-            if let Some(ref date) = add.date {
-                println!("meal date is {}", date);
-            }
+            let date = match &add.date {
+                Some(d) => d,
+                None => "today",
+            };
+            let storage = open_storage()?;
+            add_meal(&add.meal, &date, &storage)?;
         }
         Command::What(what) => {
             if let Some(ref number) = what.number {
@@ -294,31 +297,34 @@ pub fn run() -> Result<(), Error> {
             }
             println!("what is run");
         }
-        Command::Plan(plan) => match plan {
-            PlanCommand::Add(plan_add) => {
-                println!("plan add meal {} on date {}", plan_add.meal, plan_add.date);
+        Command::Plan(plan) => {
+            let storage = open_storage()?;
+            match plan {
+                PlanCommand::Add(plan_add) => {
+                    add_plan(&plan_add.meal, &plan_add.date, &storage)?;
+                }
+                PlanCommand::Show(plan_show) => {
+                    if let Some(ref number) = plan_show.number {
+                        println!("plan show number is {}", number);
+                    }
+                    if let Some(ref days) = plan_show.days {
+                        println!("plan show days is {}", days);
+                    }
+                    println!("plan show is run");
+                }
+                PlanCommand::Remove(plan_remove) => match plan_remove {
+                    PlanRemoveCommand::Meal(plan_remove_meal) => {
+                        println!("plan remove meal is {}", plan_remove_meal.meal);
+                    }
+                    PlanRemoveCommand::Date(plan_remove_date) => {
+                        println!("plan remove date is {}", plan_remove_date.date);
+                    }
+                    PlanRemoveCommand::Span(plan_remove_span) => {
+                        println!("plan remove span is {}", plan_remove_span.span);
+                    }
+                },
             }
-            PlanCommand::Show(plan_show) => {
-                if let Some(ref number) = plan_show.number {
-                    println!("plan show number is {}", number);
-                }
-                if let Some(ref days) = plan_show.days {
-                    println!("plan show days is {}", days);
-                }
-                println!("plan show is run");
-            }
-            PlanCommand::Remove(plan_remove) => match plan_remove {
-                PlanRemoveCommand::Meal(plan_remove_meal) => {
-                    println!("plan remove meal is {}", plan_remove_meal.meal);
-                }
-                PlanRemoveCommand::Date(plan_remove_date) => {
-                    println!("plan remove date is {}", plan_remove_date.date);
-                }
-                PlanRemoveCommand::Span(plan_remove_span) => {
-                    println!("plan remove span is {}", plan_remove_span.span);
-                }
-            },
-        },
+        }
         Command::Random(_) => {
             println!("random is run");
         }
