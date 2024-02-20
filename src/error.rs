@@ -23,10 +23,10 @@ pub enum Error {
     Storage,
     /// wraps Two Timer's TimeError
     TwoTimer(TimeError),
-    /// for unacceptable times
-    UnacceptableDate(String, String),
-    /// for unacceptable time spans
-    UnacceptableDateSpan(String, String),
+    /// if a chrono::NaiveDate cannot be converted to NaiveDateTime
+    TimeNotSupported,
+    /// if the user wrote a time span instead of time
+    TimeSpanNotSupported,
     /// when OsString does not contain valid Unicode
     InvalidUnicode(OsString),
     /// when directories::ProjectDirs is not found
@@ -44,14 +44,8 @@ impl fmt::Display for Error {
             Error::Fmt(fmt_error) => fmt::Display::fmt(fmt_error, f),
             Error::Storage => fmt::Display::fmt("cannot store values", f),
             Error::TwoTimer(time_error) => fmt::Display::fmt(time_error, f),
-            Error::UnacceptableDate(start, end) => fmt::Display::fmt(
-                format!("unacceptable date: start: {} end: {}", start, end).as_str(),
-                f,
-            ),
-            Error::UnacceptableDateSpan(start, end) => fmt::Display::fmt(
-                format!("unacceptable date span: start: {}, end: {}", start, end).as_str(),
-                f,
-            ),
+            Error::TimeNotSupported => fmt::Display::fmt("such time is not supported", f),
+            Error::TimeSpanNotSupported => fmt::Display::fmt("time spans are not supported", f),
             Error::InvalidUnicode(os_string) => {
                 fmt::Display::fmt(os_string.to_string_lossy().into_owned().as_str(), f)
             }
@@ -72,8 +66,8 @@ impl std::error::Error for Error {
             Error::Fmt(ref fmt_error) => Some(fmt_error),
             Error::Storage => None,
             Error::TwoTimer(ref time_error) => Some(time_error),
-            Error::UnacceptableDate(_, _) => None,
-            Error::UnacceptableDateSpan(_, _) => None,
+            Error::TimeNotSupported => None,
+            Error::TimeSpanNotSupported => None,
             Error::InvalidUnicode(_) => None,
             Error::NoDirectory(_) => None,
             Error::NoParentDirectory => None,

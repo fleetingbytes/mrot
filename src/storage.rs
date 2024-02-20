@@ -1,7 +1,8 @@
 //! Data Storage Abstraction
 
 use crate::error::Error;
-use chrono::NaiveDateTime;
+use crate::meal::Meal;
+use chrono::NaiveDate;
 use directories::ProjectDirs;
 use sqlite::{Connection, State, Value};
 use std::fmt;
@@ -12,14 +13,13 @@ pub struct Storage {
 }
 
 const FILE: &str = "database.sql";
-const DATE_FORMAT: &str = "%Y-%m-%d";
 
 impl Storage {
     fn new(pathbuf: &PathBuf) -> Result<Connection, Error> {
         std::fs::create_dir_all(pathbuf.parent().ok_or(Error::NoParentDirectory)?)?;
         let connection = sqlite::open(pathbuf)?;
         let query = "
-            CREATE TABLE meals (date TEXT, meal TEXT, plan BOOLEAN);
+            CREATE TABLE meals (date INTEGER, meal TEXT);
         ";
         connection.execute(query)?;
         Ok(connection)
@@ -36,20 +36,64 @@ impl Storage {
         }
         Ok(Self { connection })
     }
-    pub fn add_meal(&self, date: NaiveDateTime, meal: &str, plan: bool) -> Result<(), Error> {
+    pub fn add_meal(&self, date: NaiveDate, meal: &str) -> Result<(), Error> {
         let query = "
-            INSERT INTO meals VALUES (:date, :meal, :plan);
+            INSERT INTO meals VALUES (:date, :meal);
         ";
         let mut statement = self.connection.prepare(query)?;
         statement.bind_iter::<_, (_, Value)>([
-            (":date", date.format(DATE_FORMAT).to_string().into()),
+            (
+                ":date",
+                date.and_hms_opt(0, 0, 0)
+                    .ok_or(Error::TimeNotSupported)?
+                    .timestamp()
+                    .into(),
+            ),
             (":meal", meal.into()),
-            (":plan", (plan as i64).into()),
         ])?;
         while let Ok(State::Row) = statement.next() {
             return Err(Error::Storage);
         }
         Ok(())
+    }
+    pub fn meals_between_dates(
+        &self,
+        start: NaiveDate,
+        end: NaiveDate,
+    ) -> Result<Vec<Meal>, Error> {
+        let query = "SELECT date, meal FROM meals WHERE date BETWEEN :start AND :end";
+        let mut result: Vec<Meal> = Vec::new();
+        for row in self
+            .connection
+            .prepare(query)?
+            .into_iter()
+            .bind_iter::<_, (_, Value)>([
+                (
+                    ":start",
+                    start
+                        .and_hms_opt(0, 0, 0)
+                        .ok_or(Error::TimeNotSupported)?
+                        .timestamp()
+                        .into(),
+                ),
+                (
+                    ":end",
+                    end.and_hms_opt(0, 0, 0)
+                        .ok_or(Error::TimeNotSupported)?
+                        .timestamp()
+                        .into(),
+                ),
+            ])?
+            .map(|row| row.expect("Storage returned a malformed row"))
+        {
+            println!("name = {}", row.read::<&str, _>("meal"));
+            println!("date = {}", row.read::<i64, _>("date"));
+        }
+        result.push(Meal {
+            name: "fish".to_string(),
+            date: NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
+        });
+        Ok(result)
     }
 }
 

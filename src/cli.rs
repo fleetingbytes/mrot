@@ -4,7 +4,7 @@
 
 use crate::config::MrotConfig;
 use crate::error::Error;
-use crate::{add_meal, add_plan, open_storage};
+use crate::{add_meal, meals_between_dates, open_storage};
 use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Parser, Subcommand};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
@@ -23,9 +23,12 @@ enum Command {
     Add(AddArgs),
     /// What you haven't eaten in the longest time
     What(WhatArgs),
-    /// Plan meals to cook
-    #[command(subcommand)]
-    Plan(PlanCommand),
+    /// Show recorded meals
+    Show(ShowArgs),
+    /// Searches records of a given meal
+    When(WhenArgs),
+    /// Remove records of meals
+    Remove(RemoveArgs),
     /// Suggest a random meal
     Random(RandomArgs),
     #[command(subcommand)]
@@ -55,61 +58,25 @@ struct WhatArgs {
     ignore: Option<Vec<String>>,
 }
 
-#[derive(Subcommand)]
-enum PlanCommand {
-    /// Plan a meal for the future
-    Add(PlanAddArgs),
-    /// Show future meal plans
-    Show(PlanShowArgs),
-    /// Remove meal plans
-    #[command(subcommand)]
-    Remove(PlanRemoveCommand),
+#[derive(Args)]
+struct ShowArgs {
+    /// Time range to shows meals from
+    range: Option<String>,
 }
 
 #[derive(Args)]
-struct PlanAddArgs {
-    /// Meal to plan (e.g. "rib eye steak")
-    meal: String,
-    /// Date to plan it on (e.g. "next Sunday")
-    date: String,
-}
-
-#[derive(Args)]
-struct PlanShowArgs {
-    /// Limit the number of planned meals to show (overrides config)
-    #[arg(short, long)]
-    number: Option<usize>,
-    /// Show planned meals up to this many days in the future (overrides config)
-    #[arg(short, long)]
-    days: Option<usize>,
-}
-
-#[derive(Subcommand)]
-enum PlanRemoveCommand {
-    /// Remove a given meal from planned meals
-    Meal(PlanRemoveMealArgs),
-    /// Remove the planned meals for a given date
-    Date(PlanRemoveDateArgs),
-    /// Remove the planned meals for a given time span
-    Span(PlanRemoveSpanArgs),
-}
-
-#[derive(Args)]
-struct PlanRemoveMealArgs {
-    /// Meal to remove from the planned meals
+struct WhenArgs {
+    /// Meal to search for
     meal: String,
 }
 
 #[derive(Args)]
-struct PlanRemoveDateArgs {
-    /// Date for which the planned meals should be removed
-    date: String,
-}
-
-#[derive(Args)]
-struct PlanRemoveSpanArgs {
-    /// Time span for which the planned meals should be removed
-    span: String,
+struct RemoveArgs {
+    /// Time range to show meals from
+    range: String,
+    /// meal to remove
+    #[arg(short, long)]
+    meal: Option<String>,
 }
 
 #[derive(Args)]
@@ -136,8 +103,7 @@ enum ConfigSetCommand {
     #[command(subcommand)]
     What(ConfigSetWhatCommand),
     /// Set the limits when showing planned meals
-    #[command(subcommand)]
-    Plan(ConfigSetPlanCommand),
+    Show(ConfigSetShowArgs),
 }
 
 #[derive(Subcommand)]
@@ -152,24 +118,10 @@ struct ConfigSetWhatNumberArgs {
     number: usize,
 }
 
-#[derive(Subcommand)]
-enum ConfigSetPlanCommand {
-    /// Max number of planned meals to show
-    Number(ConfigSetPlanNumberArgs),
-    /// Limit of days in future for which to show planned meals
-    Days(ConfigSetPlanDaysArgs),
-}
-
 #[derive(Args)]
-struct ConfigSetPlanNumberArgs {
-    /// Max number of planned meals to show
-    number: usize,
-}
-
-#[derive(Args)]
-struct ConfigSetPlanDaysArgs {
-    /// Planned meals that lie more than this many days in the future won't be shown
-    days: usize,
+struct ConfigSetShowArgs {
+    /// Time range in which to show meals
+    range: String,
 }
 
 #[derive(Subcommand)]
@@ -177,9 +129,8 @@ enum ConfigGetCommand {
     /// See the configuration for meal suggestions
     #[command(subcommand)]
     What(ConfigGetWhatCommand),
-    /// See the configuration for meal plans
-    #[command(subcommand)]
-    Plan(ConfigGetPlanCommand),
+    /// See the configuration for showing meals
+    Show(ConfigGetShowArgs),
 }
 
 #[derive(Subcommand)]
@@ -191,19 +142,8 @@ enum ConfigGetWhatCommand {
 #[derive(Args)]
 struct ConfigGetWhatNumberArgs;
 
-#[derive(Subcommand)]
-enum ConfigGetPlanCommand {
-    /// Max number of planned meals to show
-    Number(ConfigGetPlanNumberArgs),
-    /// Planned meals that lie more than this many days in the future won't be shown
-    Days(ConfigGetPlanDaysArgs),
-}
-
 #[derive(Args)]
-struct ConfigGetPlanNumberArgs;
-
-#[derive(Args)]
-struct ConfigGetPlanDaysArgs;
+struct ConfigGetShowArgs;
 
 #[derive(Subcommand)]
 enum ConfigIgnoreCommand {
@@ -297,32 +237,22 @@ pub fn run() -> Result<(), Error> {
             }
             println!("what is run");
         }
-        Command::Plan(plan) => {
-            let storage = open_storage()?;
-            match plan {
-                PlanCommand::Add(plan_add) => {
-                    add_plan(&plan_add.meal, &plan_add.date, &storage)?;
-                }
-                PlanCommand::Show(plan_show) => {
-                    if let Some(ref number) = plan_show.number {
-                        println!("plan show number is {}", number);
-                    }
-                    if let Some(ref days) = plan_show.days {
-                        println!("plan show days is {}", days);
-                    }
-                    println!("plan show is run");
-                }
-                PlanCommand::Remove(plan_remove) => match plan_remove {
-                    PlanRemoveCommand::Meal(plan_remove_meal) => {
-                        println!("plan remove meal is {}", plan_remove_meal.meal);
-                    }
-                    PlanRemoveCommand::Date(plan_remove_date) => {
-                        println!("plan remove date is {}", plan_remove_date.date);
-                    }
-                    PlanRemoveCommand::Span(plan_remove_span) => {
-                        println!("plan remove span is {}", plan_remove_span.span);
-                    }
-                },
+        Command::Show(show) => {
+            if let Some(range) = &show.range {
+                println!("show range is {}", range);
+                let storage = open_storage()?;
+                meals_between_dates(range, &storage)?;
+            }
+        }
+        Command::When(when) => {
+            println!("when meal is {}", when.meal);
+        }
+        Command::Remove(remove) => {
+            println!("remove range is {}", remove.range);
+            if let Some(meal) = &remove.meal {
+                println!("remove meal is {}", meal);
+            } else {
+                println!("remove all meals in that range");
             }
         }
         Command::Random(_) => {
@@ -338,14 +268,9 @@ pub fn run() -> Result<(), Error> {
                                 cfg.what.number = config_set_what_number.number;
                             }
                         },
-                        ConfigSetCommand::Plan(config_set_plan) => match config_set_plan {
-                            ConfigSetPlanCommand::Number(config_set_plan_number) => {
-                                cfg.plan.number = config_set_plan_number.number;
-                            }
-                            ConfigSetPlanCommand::Days(config_set_plan_days) => {
-                                cfg.plan.days = config_set_plan_days.days;
-                            }
-                        },
+                        ConfigSetCommand::Show(config_set_show) => {
+                            cfg.show.range = config_set_show.range.clone();
+                        }
                     }
                     confy::store(&app_name, CONFIG_FILE_NAME, cfg)?
                 }
@@ -355,14 +280,9 @@ pub fn run() -> Result<(), Error> {
                             println!("{}", cfg.what.number);
                         }
                     },
-                    ConfigGetCommand::Plan(config_get_plan) => match config_get_plan {
-                        ConfigGetPlanCommand::Number(_) => {
-                            println!("{}", cfg.plan.number);
-                        }
-                        ConfigGetPlanCommand::Days(_) => {
-                            println!("{}", cfg.plan.days);
-                        }
-                    },
+                    ConfigGetCommand::Show(_) => {
+                        println!("{}", cfg.show.range);
+                    }
                 },
                 ConfigCommand::Ignore(config_ignore) => match config_ignore {
                     ConfigIgnoreCommand::Add(config_ignore_add) => {
