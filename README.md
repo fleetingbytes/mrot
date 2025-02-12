@@ -7,7 +7,7 @@ We regularly cook meals from a small repertoir of recipes. Yet, when deciding wh
 * `mrot add spaghetti` records that you've had spaghetti today
 * `mrot add pizza --date yesterday` records that you've had a pizza yesterday
 * `mrot add steak --date 2024-02-10` records that you've had a steak on February 10 2024
-* `mrot add carp --date 2052-12-24` records that you plan to have carp on Christmas Eve 2052
+* `mrot add carp --date "tomorrow" --date "day after tomorrow"` records that you plan to have carp tomorrow and on the day after tomorrow
 
 * `mrot what` will show you some meals which you haven't had for the longest time
 * `mrot what --number 5` will show you five meals which you haven't had for the longest time

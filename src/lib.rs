@@ -19,6 +19,14 @@ pub fn open_storage() -> Result<Storage, Error> {
     Ok(Storage::open()?)
 }
 
+/// Adds a meal on several dates to the storage
+pub fn add_meal_on_dates(meal: &str, dates: &Vec<String>, storage: &Storage) -> Result<(), Error> {
+    for date in dates {
+        add_meal(&meal, &date, &storage)?;
+    }
+    Ok(())
+}
+
 /// Adds a meal to the storage
 pub fn add_meal(meal: &str, date: &str, storage: &Storage) -> Result<(), Error> {
     let (date, _end_date, range) = parse(date, None)?;

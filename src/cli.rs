@@ -4,7 +4,7 @@
 
 use crate::config::MrotConfig;
 use crate::error::Error;
-use crate::{add_meal, meals_between_dates, open_storage};
+use crate::{add_meal_on_dates, meals_between_dates, open_storage};
 use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Parser, Subcommand};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
@@ -44,8 +44,8 @@ struct AddArgs {
     /// Meal to add (e.g. "rib eye steak")
     meal: String,
     /// Day to add this meal on
-    #[arg(short, long, default_value = "today")]
-    date: Option<String>,
+    #[arg(short, long, action = Append)]
+    date: Option<Vec<String>>,
 }
 
 #[derive(Args)]
@@ -221,12 +221,12 @@ pub fn run() -> Result<(), Error> {
     let cli = Cli::parse();
     match &cli.command {
         Command::Add(add) => {
-            let date = match &add.date {
-                Some(d) => d,
-                None => "today",
+            let dates = match &add.date {
+                Some(vec_d) => vec_d,
+                None => &vec![String::from("today")],
             };
             let storage = open_storage()?;
-            add_meal(&add.meal, &date, &storage)?;
+            add_meal_on_dates(&add.meal, &dates, &storage)?;
         }
         Command::What(what) => {
             if let Some(ref number) = what.number {
