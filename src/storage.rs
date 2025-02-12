@@ -46,6 +46,7 @@ impl Storage {
                 ":date",
                 date.and_hms_opt(0, 0, 0)
                     .ok_or(Error::TimeNotSupported)?
+                    .and_utc()
                     .timestamp()
                     .into(),
             ),
@@ -73,6 +74,7 @@ impl Storage {
                     start
                         .and_hms_opt(0, 0, 0)
                         .ok_or(Error::TimeNotSupported)?
+                        .and_utc()
                         .timestamp()
                         .into(),
                 ),
