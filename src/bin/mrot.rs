@@ -5,7 +5,7 @@
 
 use color_eyre::eyre::Report;
 use mrot::error::Error;
-use tracing::{error, trace};
+use tracing::{error, instrument, trace};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 fn init_tracing() -> () {
@@ -15,6 +15,7 @@ fn init_tracing() -> () {
         .init();
 }
 
+#[instrument]
 fn main() -> Result<(), Report> {
     init_tracing();
     trace!("Tracing initialized");

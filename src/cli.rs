@@ -9,6 +9,7 @@ use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Pars
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
 use std::io;
+use tracing::instrument;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -215,6 +216,7 @@ struct GenerateZshArgs;
 const CONFIG_FILE_NAME: &str = "config";
 
 /// Parses the CLI commands and makes the required API calls to execute them
+#[instrument]
 pub fn run() -> Result<(), Error> {
     let app_name = Cli::command().get_name().to_string();
     let mut cfg: MrotConfig = confy::load(&app_name, CONFIG_FILE_NAME)?;
