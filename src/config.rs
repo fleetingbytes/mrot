@@ -4,7 +4,7 @@ use std::fmt;
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct MrotConfig {
     pub what: What,
-    pub plan: Plan,
+    pub show: Show,
     pub ignore: Ignore,
 }
 
@@ -15,19 +15,20 @@ pub struct What {
 
 impl Default for What {
     fn default() -> Self {
-        What { number: 3 }
+        Self { number: 3 }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Plan {
-    pub number: usize,
-    pub days: usize,
+pub struct Show {
+    pub range: String,
 }
 
-impl Default for Plan {
+impl Default for Show {
     fn default() -> Self {
-        Plan { number: 3, days: 5 }
+        Self {
+            range: "from three days before today until one day after tomorrow".to_string(),
+        }
     }
 }
 
