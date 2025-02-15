@@ -21,7 +21,7 @@ clap_complete_nushell = "4.5"
 color-eyre = "0.6.2"
 confy = { version = "0.6.0", features = ["ron_conf"], default-features = false }
 directories = "5.0.1"
-serde = { version = "1.0.196", features = ["derive"] }
+serde = { version = "1.0.217", features = ["derive"] }
 sqlite = "0.33.0"
 tracing = "0.1.40"
 tracing-appender = "0.2.3"
