@@ -15,6 +15,26 @@ license-file = "BSD-2-Clause"
 keywords = ["tools", "tracking", "meal", "cooking", "calendar"]
 categories = ["command-line-utilities"]
 
+[workspace.dependencies]
+mrot = { path = "crates/mrot" }
+mrot_config = { path = "crates/mrot_config" }
+mrot_cli = { path = "crates/mrot_cli" }
+libmrot = { path = "crates/libmrot" }
+
+chrono = "0.4.34"
+clap = { version = "4.5", features = ["derive"] }
+clap_complete = "4.5"
+clap_complete_nushell = "4.5"
+color-eyre = "0.6.2"
+confy = { version = "0.6.0", features = ["ron_conf"], default-features = false }
+directories = "5.0.1"
+serde = { version = "1.0.217", features = ["derive"] }
+sqlite = "0.33.0"
+tracing = "0.1.40"
+tracing-appender = "0.2.3"
+tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter", "registry"] }
+two_timer = "2.2.5"
+
 [workspace.lints.rust]
 missing_docs = "deny"
 

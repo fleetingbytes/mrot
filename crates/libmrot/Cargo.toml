@@ -14,6 +14,8 @@ categories.workspace = true
 [lib]
 
 [dependencies]
+sqlite = { workspace = true }
+two_timer = { workspace = true }
 
 [lints]
 workspace = true
