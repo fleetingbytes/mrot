@@ -1,0 +1,18 @@
+[package]
+name = "mrot"
+version = "0.1.0"
+publish = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme = "../../README.md"
+
+[dependencies]
+
+[lints]
+workspace = true

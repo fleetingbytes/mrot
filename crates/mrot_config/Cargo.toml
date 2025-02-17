@@ -1,0 +1,19 @@
+[package]
+name = "mrot_config"
+version = "0.1.0"
+publish = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description.workspace = true
+repository.workspace = true
+license-file.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lib]
+
+[dependencies]
+
+[lints]
+workspace = true

@@ -1,7 +1,6 @@
 //!~Meal Rotator
 //!
 //!
-#![deny(missing_docs)]
 
 use color_eyre::eyre::Report;
 use directories::ProjectDirs;
