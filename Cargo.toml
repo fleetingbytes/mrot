@@ -1,19 +1,25 @@
-[package]
-name = "mrot"
-version = "0.1.0"
+[workspace]
+
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
 edition = "2021"
+rust-version = "1.84"
 authors = ["Sven Siegmund <sven.siegmund@gmail.com>"]
 description = "Meal rotator"
 repository = "https://github.com/fleetingbytes/mrot/"
-license-file = "LICENSE"
+homepage = "https://crates.io/crates/mrot/"
+documentation = "https://docs.rs/mrot/latest/mrot"
+license = "BSD-2-Clause"
 keywords = ["tools", "tracking", "meal", "cooking", "calendar"]
 categories = ["command-line-utilities"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace.dependencies]
+mrot_config = { path = "crates/mrot_config", version = "0.1.0-alpha.1" }
+mrot_cli = { path = "crates/mrot_cli", version = "0.1.0-alpha.1" }
+libmrot = { path = "crates/libmrot", version = "0.1.0-alpha.1" }
 
-[workspace]
-
-[dependencies]
 chrono = "0.4.34"
 clap = { version = "4.5", features = ["derive"] }
 clap_complete = "4.5"
@@ -21,9 +27,13 @@ clap_complete_nushell = "4.5"
 color-eyre = "0.6.2"
 confy = { version = "0.6.0", features = ["ron_conf"], default-features = false }
 directories = "5.0.1"
-serde = { version = "1.0.196", features = ["derive"] }
+serde = { version = "1.0.217", features = ["derive"] }
 sqlite = "0.33.0"
 tracing = "0.1.40"
 tracing-appender = "0.2.3"
 tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter", "registry"] }
 two_timer = "2.2.5"
+
+[workspace.lints.rust]
+
+[workspace.lints.clippy]

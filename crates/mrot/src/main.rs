@@ -1,11 +1,10 @@
 //!~Meal Rotator
 //!
 //!
-#![deny(missing_docs)]
 
 use color_eyre::eyre::Report;
 use directories::ProjectDirs;
-use mrot::error::Error;
+use libmrot::error::Error;
 use tracing::error;
 use tracing_appender::non_blocking;
 use tracing_subscriber::{filter::EnvFilter, fmt, fmt::format::FmtSpan, prelude::*};
@@ -42,7 +41,7 @@ fn init_tracing() -> Result<Vec<impl Drop>, Error> {
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
     let _guards = init_tracing()?;
-    match mrot::cli::run() {
+    match mrot_cli::run() {
         Ok(_) => Ok(()),
         Err(e) if matches!(e, Error::TimeSpanNotSupported) => {
             error!("{}", e);

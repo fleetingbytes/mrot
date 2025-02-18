@@ -1,0 +1,25 @@
+[package]
+name = "mrot"
+version = "0.1.0-alpha.1"
+publish = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "App for recording and planning meals"
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme = "README.md"
+
+[dependencies]
+libmrot = { workspace = true }
+mrot_cli = { workspace = true }
+color-eyre = { workspace = true }
+directories = { workspace = true }
+tracing = { workspace = true }
+tracing-appender = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true
