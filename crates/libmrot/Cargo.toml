@@ -14,8 +14,12 @@ categories.workspace = true
 [lib]
 
 [dependencies]
+chrono = { workspace = true }
+confy = { workspace = true }
+directories = { workspace = true }
 sqlite = { workspace = true }
+tracing = { workspace = true }
 two_timer = { workspace = true }
 
-[lints]
-workspace = true
+[lints.rust]
+missing_docs = "deny"

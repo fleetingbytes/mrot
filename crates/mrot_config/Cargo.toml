@@ -18,4 +18,3 @@ serde = { workspace = true }
 confy = { workspace = true }
 
 [lints]
-workspace = true

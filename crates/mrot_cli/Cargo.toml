@@ -14,9 +14,14 @@ categories.workspace = true
 [lib]
 
 [dependencies]
+libmrot = { workspace = true }
+mrot_config = { workspace = true }
 clap = { workspace = true }
 clap_complete = { workspace = true }
 clap_complete_nushell = { workspace = true }
+confy = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
 
-[lints]
-workspace = true
+[lints.rust]
+missing_docs = "deny"

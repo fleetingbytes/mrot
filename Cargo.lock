@@ -156,7 +156,9 @@ checksum = "7e36cc9d416881d2e24f9a963be5fb1cd90966419ac844274161d10488b3e825"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
+ "wasm-bindgen",
  "windows-targets 0.52.6",
 ]
 
@@ -415,7 +417,11 @@ checksum = "b5aba8db14291edd000dfcc4d620c7ebfb122c613afb886ca8803fa4e128a20a"
 name = "libmrot"
 version = "0.1.0"
 dependencies = [
+ "chrono",
+ "confy",
+ "directories",
  "sqlite",
+ "tracing",
  "two_timer",
 ]
 
@@ -465,6 +471,8 @@ version = "0.1.0"
 dependencies = [
  "color-eyre",
  "directories",
+ "libmrot",
+ "mrot_cli",
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
@@ -477,6 +485,11 @@ dependencies = [
  "clap",
  "clap_complete",
  "clap_complete_nushell",
+ "confy",
+ "libmrot",
+ "mrot_config",
+ "serde",
+ "tracing",
 ]
 
 [[package]]
