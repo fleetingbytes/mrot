@@ -1,5 +1,9 @@
 # Meal Rotator
 
+Helps you rotate through the meals you eat and decide what to cook next.
+
+## Why mrot exists
+
 We regularly cook meals from a small repertoir of recipes. Yet, when deciding what to cook next, we struggle to remember which meals we didn't have in a while. The Meal Rotator, or *mrot* for short, helps you keep track of the days passed since you last cooked spaghetti, pizza, or had a steak. The meals with the longest time passed are suggested as candidates what to cook next.
 
 ## CLI Concept
@@ -22,7 +26,7 @@ We regularly cook meals from a small repertoir of recipes. Yet, when deciding wh
 
 * `mrot random` will show you one random meal from your past or planned meals
 
-* `mrot config set what number 5` will configure mrot to suggest three oldest meals (default: 3)
+* `mrot config set what number 5` will configure mrot to suggest five oldest meals (default: 3)
 * `mrot config set show "from the day before yesterday until tomorrow"` will configure mrot to show the meals planned for the specified range
 * `mrot config get what number` will show how many meals is mrot configured to suggest
 * `mrot config get show` will show the time in which mrot-show will show meals
@@ -34,10 +38,6 @@ We regularly cook meals from a small repertoir of recipes. Yet, when deciding wh
 
 * `mrot generate zsh` will generate shell completion for zsh
 
-If you add a meal on a day on which one or more meals are planned, these planned meal are removed and replaced by the added meal.
-
-Running `mrot add` or `mrot what` will check for any planned meals with yesterday's date or older. If such meals are found, they will be converted to normal records, as if they had been added with `mrot add` in the past.
-
 ## Non-Goals
 
-Mrot is intended to record only the prime meal of the day (lunch). This is because in my family the breakfasts and dinners are routinely the same and change only seasonally, if at all. You can record or plan multiple meals on a single day, but they are all equivalent. Mrot will not distinguish if a meal was a breakfast, lunch, or dinner. In queries limiting the number of meals shown, e.g. `mrot plan show --number 3`, such meals are in competition with each other and mrot will show only the first of the matches until the limit is reached.
+Mrot is intended to record only the prime meal of the day (lunch). This is because in my family the breakfasts and dinners are routinely the same and change only occasionally. You can record or plan multiple meals on a single day, but they are all equivalent. Mrot will not distinguish if a meal was a breakfast, lunch, or dinner. In queries limiting the number of meals shown, e.g. `mrot plan show --number 3`, such meals are in competition with each other and mrot will show only the first of the matches on that day.
