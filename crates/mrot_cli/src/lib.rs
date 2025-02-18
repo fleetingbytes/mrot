@@ -1,13 +1,10 @@
 //! CLI for mrot
 
-#![deny(missing_docs)]
-
-use crate::config::MrotConfig;
-use crate::error::Error;
-use crate::{add_meal_on_dates, meals_between_dates, open_storage};
 use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Parser, Subcommand};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
+use libmrot::{add_meal_on_dates, error::Error, meals_between_dates, open_storage};
+use mrot_config::MrotConfig;
 use std::io;
 use tracing::instrument;
 

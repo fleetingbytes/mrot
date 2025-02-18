@@ -1,0 +1,23 @@
+[package]
+name = "libmrot"
+version = "0.1.0-alpha.1"
+publish = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "Library for recording and planning meals"
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+confy = { workspace = true }
+directories = { workspace = true }
+sqlite = { workspace = true }
+tracing = { workspace = true }
+two_timer = { workspace = true }
+
+[lints.rust]
+missing_docs = "deny"

@@ -3,8 +3,6 @@
 //!
 #![deny(missing_docs)]
 
-pub mod cli;
-mod config;
 pub mod error;
 mod meal;
 mod storage;
