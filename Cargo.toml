@@ -14,10 +14,9 @@ keywords = ["tools", "tracking", "meal", "cooking", "calendar"]
 categories = ["command-line-utilities"]
 
 [workspace.dependencies]
-mrot = { path = "crates/mrot", version = "0.1.0" }
-mrot_config = { path = "crates/mrot_config", version = "0.1.0" }
-mrot_cli = { path = "crates/mrot_cli", version = "0.1.0" }
-libmrot = { path = "crates/libmrot", version = "0.1.0" }
+mrot_config = { path = "crates/mrot_config", version = "0.1.0-alpha.1" }
+mrot_cli = { path = "crates/mrot_cli", version = "0.1.0-alpha.1" }
+libmrot = { path = "crates/libmrot", version = "0.1.0-alpha.1" }
 
 chrono = "0.4.34"
 clap = { version = "4.5", features = ["derive"] }

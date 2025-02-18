@@ -1,11 +1,11 @@
 [package]
 name = "mrot_config"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 publish = true
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
-description.workspace = true
+description = "Configuration for the meal rotator app (mrot)"
 repository.workspace = true
 license.workspace = true
 keywords.workspace = true
