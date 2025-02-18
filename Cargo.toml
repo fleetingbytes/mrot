@@ -8,7 +8,6 @@ edition = "2021"
 rust-version = "1.84"
 authors = ["Sven Siegmund <sven.siegmund@gmail.com>"]
 description = "Meal rotator"
-homepage = "https://crates.io/crates/mrot/"
 repository = "https://github.com/fleetingbytes/mrot/"
 homepage = "https://crates.io/crates/mrot/"
 documentation = "https://docs.rs/mrot/latest/mrot"
