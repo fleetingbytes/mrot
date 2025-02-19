@@ -1,13 +1,7 @@
 //! Tests for libmrot
 
-use cucumber::{given, World as _};
-use libmrot::Storage;
-
-/// World for cucumber tests
-#[derive(Debug, Default, cucumber::World)]
-pub struct World {
-    storage: Storage,
-}
+use cucumber::given;
+use test_utils::{debug_world_no_cleanup as construct_world, World};
 
 #[given("a storage")]
 async fn storage(_world: &mut World) {
@@ -16,5 +10,6 @@ async fn storage(_world: &mut World) {
 
 #[tokio::main]
 async fn main() {
-    World::run("tests/features").await;
+    let world = construct_world();
+    world.run("tests/features").await;
 }
