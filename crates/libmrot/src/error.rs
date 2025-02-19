@@ -11,25 +11,25 @@ use two_timer::TimeError;
 /// Mrot error variants
 #[derive(Debug)]
 pub enum Error {
-    /// wraps std::io::Error
+    /// wraps [std::io::Error]
     Io(IoError),
-    /// wraps confy::Error
+    /// wraps [confy::ConfyError]
     Confy(ConfyError),
-    /// wraps sqlite error
+    /// wraps [sqlite::Error]
     Sqlite(SqliteError),
-    /// wraps fmt::Error
+    /// wraps [std::fmt::Error]
     Fmt(fmt::Error),
     /// when something could not be stored in the storage
     Storage,
-    /// wraps Two Timer's TimeError
+    /// wraps [two_timer::TimeError]
     TwoTimer(TimeError),
-    /// if a chrono::NaiveDate cannot be converted to NaiveDateTime
+    /// when a [chrono::NaiveDate] cannot be converted to [chrono::NaiveDateTime]
     TimeNotSupported,
-    /// if the user wrote a time span instead of time
+    /// if the user input a time span instead of time
     TimeSpanNotSupported,
     /// when OsString does not contain valid Unicode
     InvalidUnicode(OsString),
-    /// when directories::ProjectDirs is not found
+    /// when [directories::ProjectDirs] is not found
     NoDirectory(String),
     /// when a path does not have a parent directory
     NoParentDirectory,

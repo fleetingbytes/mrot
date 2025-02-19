@@ -1,7 +1,7 @@
 //! Data Storage Abstraction
 
-use crate::error::Error;
 use crate::meal::Meal;
+use crate::{error::Error, Result};
 use chrono::NaiveDate;
 use directories::ProjectDirs;
 use sqlite::{Connection, State, Value};
@@ -9,6 +9,7 @@ use std::fmt;
 use std::path::PathBuf;
 use tracing::{instrument, Span};
 
+/// Abstraction of a storage capable of storing MealRecords.
 pub struct Storage {
     connection: Connection,
 }
@@ -17,7 +18,7 @@ const FILE: &str = "database.sql";
 
 impl Storage {
     #[instrument]
-    fn new(pathbuf: &PathBuf) -> Result<Connection, Error> {
+    fn new(pathbuf: &PathBuf) -> Result<Connection> {
         std::fs::create_dir_all(pathbuf.parent().ok_or(Error::NoParentDirectory)?)?;
         let connection = sqlite::open(pathbuf)?;
         let query = "
@@ -27,8 +28,9 @@ impl Storage {
         Ok(connection)
     }
 
+    /// Opens a storage
     #[instrument]
-    pub fn open() -> Result<Self, Error> {
+    pub fn open() -> Result<Self> {
         let dirs = ProjectDirs::from("", "", env!("CARGO_PKG_NAME"))
             .ok_or(Error::NoDirectory("ProjectDirs".to_string()))?;
         let file_path = dirs.data_dir().join(FILE);
@@ -41,8 +43,9 @@ impl Storage {
         Ok(Self { connection })
     }
 
+    /// Add meal to storage
     #[instrument]
-    pub fn add_meal(&self, date: NaiveDate, meal: &str) -> Result<(), Error> {
+    pub fn add_meal(&self, date: NaiveDate, meal: &str) -> Result<()> {
         let converted_date = self.convert_date_to_timestamp(date)?;
         let query = "
             INSERT INTO meals VALUES (:date, :meal);
@@ -59,7 +62,7 @@ impl Storage {
     }
 
     #[instrument(level = "debug", fields(result))]
-    fn convert_date_to_timestamp(&self, date: NaiveDate) -> Result<i64, Error> {
+    fn convert_date_to_timestamp(&self, date: NaiveDate) -> Result<i64> {
         let timestamp = date
             .and_hms_opt(0, 0, 0)
             .ok_or(Error::TimeNotSupported)?
@@ -69,12 +72,9 @@ impl Storage {
         Ok(timestamp)
     }
 
+    /// Add meal between dates
     #[instrument]
-    pub fn meals_between_dates(
-        &self,
-        start: NaiveDate,
-        end: NaiveDate,
-    ) -> Result<Vec<Meal>, Error> {
+    pub fn meals_between_dates(&self, start: NaiveDate, end: NaiveDate) -> Result<Vec<Meal>> {
         let query = "SELECT date, meal FROM meals WHERE date BETWEEN :start AND :end";
         let mut result: Vec<Meal> = Vec::new();
         for row in self
@@ -114,7 +114,13 @@ impl Storage {
 }
 
 impl fmt::Debug for Storage {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Storage(chg: {})", self.connection.total_change_count())
+    }
+}
+
+impl Default for Storage {
+    fn default() -> Self {
+        Storage::open().unwrap()
     }
 }
