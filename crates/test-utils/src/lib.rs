@@ -9,13 +9,13 @@ use tracing_subscriber::{
     layer::{Layer, SubscriberExt as _},
 };
 use std::{io, path::Path};
-use libmrot::Storage;
+use libmrot::storage::Storage;
 
 /// World for cucumber tests
 #[derive(Debug, Default, cucumber::World)]
 #[world(init = Self::default)]
 pub struct World {
-    storage: Storage,
+    pub storage: Option<dyn Storage>,
 }
 
 /// Clean-up procedure after each scenario

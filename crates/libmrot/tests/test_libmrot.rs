@@ -2,10 +2,12 @@
 
 use cucumber::given;
 use test_utils::{debug_world_no_cleanup as construct_world, World};
+use libmrot::storage::SqliteStorage;
 
 #[given("a storage")]
-async fn storage(_world: &mut World) {
-    assert!(true);
+async fn storage(world: &mut World) {
+    let storage = SqliteStorage::from(":memory");
+    world.storage = Some(storage);
 }
 
 #[tokio::main]

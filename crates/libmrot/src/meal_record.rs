@@ -1,7 +1,6 @@
 use chrono::NaiveDate;
 
-#[derive(Debug)]
-pub struct Meal {
+pub struct MealRecord {
     pub name: String,
     pub date: NaiveDate,
 }
