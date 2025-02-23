@@ -1,7 +1,7 @@
 //! Tests for libmrot
 
 use cucumber::{when, given, then};
-use test_utils::{debug_world as construct_world, World, Result, Error};
+use mrot_test_utils::{debug_world as construct_world, World, Result, Error};
 use libmrot::Storage;
 use tracing::trace;
 

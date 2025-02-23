@@ -23,7 +23,7 @@ two_timer = { workspace = true }
 cucumber = { workspace = true }
 futures = { workspace = true }
 tokio = { workspace = true }
-test-utils = { workspace = true }
+mrot-test-utils = { workspace = true }
 
 [lints.rust]
 missing_docs = "deny"

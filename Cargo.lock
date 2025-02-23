@@ -804,8 +804,8 @@ dependencies = [
  "cucumber",
  "directories 6.0.0",
  "futures",
+ "mrot-test-utils",
  "sqlite",
- "test-utils",
  "tokio",
  "tracing",
  "two_timer",
@@ -879,6 +879,17 @@ dependencies = [
  "mrot_cli",
  "tracing",
  "tracing-appender",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "mrot-test-utils"
+version = "0.1.0-alpha.1"
+dependencies = [
+ "cucumber",
+ "futures",
+ "libmrot",
+ "tracing",
  "tracing-subscriber",
 ]
 
@@ -1396,17 +1407,6 @@ checksum = "5352447f921fda68cf61b4101566c0bdb5104eff6804d0678e5227580ab6a4e9"
 dependencies = [
  "rustix",
  "windows-sys 0.59.0",
-]
-
-[[package]]
-name = "test-utils"
-version = "0.1.0"
-dependencies = [
- "cucumber",
- "futures",
- "libmrot",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

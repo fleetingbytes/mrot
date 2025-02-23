@@ -1,11 +1,11 @@
 [package]
-name = "test-utils"
-version = "0.1.0"
-publish = false
+name = "mrot-test-utils"
+version = "0.1.0-alpha.1"
+publish = true
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
-description = "Utilities for cucumber tests"
+description = "Utilities for integration tests of the mrot app"
 repository.workspace = true
 homepage.workspace = true
 documentation.workspace = true

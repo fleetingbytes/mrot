@@ -19,7 +19,7 @@ categories = ["command-line-utilities"]
 libmrot = { path = "crates/libmrot", version = "0.1.0-alpha.2" }
 mrot_cli = { path = "crates/mrot_cli", version = "0.1.0-alpha.2" }
 mrot_config = { path = "crates/mrot_config", version = "0.1.0-alpha.1" }
-test-utils = { path = "crates/test-utils", version = "0.1.0" }
+mrot-test-utils = { path = "crates/mrot-test-utils", version = "0.1.0-alpha.1" }
 
 chrono = "0.4"
 clap = { version = "4", features = ["derive"] }
