@@ -4,11 +4,13 @@
 //!
 //! [mrot]: https://docs.rs/mrot
 
-pub mod error;
+mod error;
+#[allow(dead_code)]
 mod meal_record;
-pub mod storage;
+mod storage;
 
 pub use error::Error;
+pub use storage::Storage;
 
 /// Type alias for results with libmrot's [Error].
-pub type Result<T> = core::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;

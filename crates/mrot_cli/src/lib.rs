@@ -3,7 +3,8 @@
 use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Parser, Subcommand};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
-use libmrot::{add_meal_on_dates, error::Error, meals_between_dates, open_storage};
+use directories::ProjectDirs;
+use libmrot::{Error, Result, Storage};
 use mrot_config::MrotConfig;
 use std::io;
 use tracing::instrument;
@@ -210,13 +211,14 @@ struct GeneratePowerShellArgs;
 #[derive(Args)]
 struct GenerateZshArgs;
 
+const APP_NAME: &str = "mrot";
 const CONFIG_FILE_NAME: &str = "config";
+const STORAGE_FILE: &str = "database.sql";
 
-/// Parses the CLI commands and makes the required API calls to execute them
+/// Parses the CLI commands and makes the required API calls to execute them.
 #[instrument]
-pub fn run() -> Result<(), Error> {
-    let app_name = Cli::command().get_name().to_string();
-    let mut cfg: MrotConfig = confy::load(&app_name, CONFIG_FILE_NAME)?;
+pub fn run() -> Result<()> {
+    let mut cfg: MrotConfig = confy::load(APP_NAME, CONFIG_FILE_NAME)?;
     let cli = Cli::parse();
     match &cli.command {
         Command::Add(add) => {
@@ -225,7 +227,7 @@ pub fn run() -> Result<(), Error> {
                 None => &vec![String::from("today")],
             };
             let storage = open_storage()?;
-            add_meal_on_dates(&add.meal, &dates, &storage)?;
+            storage.add_meal_on_dates(&add.meal, &dates)?;
         }
         Command::What(what) => {
             if let Some(ref number) = what.number {
@@ -239,8 +241,10 @@ pub fn run() -> Result<(), Error> {
         Command::Show(show) => {
             if let Some(range) = &show.range {
                 println!("show range is {}", range);
-                let storage = open_storage()?;
-                meals_between_dates(range, &storage)?;
+                let _storage = Storage::open(":memory")?;
+                println!("here I would show the meals in the given date range");
+            } else {
+                println!("here I would show the meals in the default date range");
             }
         }
         Command::When(when) => {
@@ -258,7 +262,7 @@ pub fn run() -> Result<(), Error> {
             println!("random is run");
         }
         Command::Config(config) => {
-            let config_path = confy::get_configuration_file_path(&app_name, CONFIG_FILE_NAME)?;
+            let config_path = confy::get_configuration_file_path(APP_NAME, CONFIG_FILE_NAME)?;
             match config {
                 ConfigCommand::Set(config_set) => {
                     match config_set {
@@ -271,7 +275,7 @@ pub fn run() -> Result<(), Error> {
                             cfg.show.range = config_set_show.range.clone();
                         }
                     }
-                    confy::store(&app_name, CONFIG_FILE_NAME, cfg)?
+                    confy::store(APP_NAME, CONFIG_FILE_NAME, cfg)?
                 }
                 ConfigCommand::Get(config_get) => match config_get {
                     ConfigGetCommand::What(config_get_what) => match config_get_what {
@@ -286,11 +290,11 @@ pub fn run() -> Result<(), Error> {
                 ConfigCommand::Ignore(config_ignore) => match config_ignore {
                     ConfigIgnoreCommand::Add(config_ignore_add) => {
                         cfg.ignore.add(&config_ignore_add.meal);
-                        confy::store(&app_name, CONFIG_FILE_NAME, cfg)?
+                        confy::store(APP_NAME, CONFIG_FILE_NAME, cfg)?
                     }
                     ConfigIgnoreCommand::Remove(config_ignore_remove) => {
                         cfg.ignore.remove(&config_ignore_remove.meal);
-                        confy::store(&app_name, CONFIG_FILE_NAME, cfg)?
+                        confy::store(APP_NAME, CONFIG_FILE_NAME, cfg)?
                     }
                     ConfigIgnoreCommand::Show(_) => {
                         if !cfg.ignore.is_empty() {
@@ -299,7 +303,7 @@ pub fn run() -> Result<(), Error> {
                     }
                     ConfigIgnoreCommand::Clear(_) => {
                         cfg.ignore.clear();
-                        confy::store(&app_name, CONFIG_FILE_NAME, cfg)?
+                        confy::store(APP_NAME, CONFIG_FILE_NAME, cfg)?
                     }
                 },
                 ConfigCommand::Path(_) => {
@@ -332,6 +336,22 @@ pub fn run() -> Result<(), Error> {
         }
     };
     Ok(())
+}
+
+fn open_storage() -> Result<Storage> {
+    let storage_path = get_storage_path()?;
+    Storage::open(&storage_path)
+}
+
+fn get_storage_path() -> Result<String> {
+    let dirs = ProjectDirs::from("", "", APP_NAME)
+            .ok_or(
+                Error::NoDirectory(
+                    "directories::ProjectDirs: no valid home directory path could be retrieved from the operating system".to_string()
+                )
+            )?;
+    let file_path = dirs.data_dir().join(STORAGE_FILE);
+    Ok(file_path.into_os_string().into_string()?)
 }
 
 fn print_completions<G: Generator>(gen: G, cmd: &mut ClapCommand) {
