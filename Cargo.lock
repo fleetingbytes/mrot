@@ -804,7 +804,6 @@ dependencies = [
  "cucumber",
  "directories 6.0.0",
  "futures",
- "mrot-test-utils",
  "sqlite",
  "tokio",
  "tracing",
