@@ -1,6 +1,6 @@
 [package]
 name = "libmrot"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 publish = true
 edition.workspace = true
 rust-version.workspace = true
