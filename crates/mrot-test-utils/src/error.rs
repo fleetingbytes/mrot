@@ -11,7 +11,6 @@ pub enum Error {
     LibMrot(LibMrotError),
     /// Bug in the test code
     UndefinedValue(String),
-    NotImplemented,
 }
 
 impl fmt::Display for Error {
@@ -21,7 +20,6 @@ impl fmt::Display for Error {
             Error::UndefinedValue(field) => {
                 fmt::Display::fmt(&format!("world has no value for {}", field), f)
             }
-            Error::NotImplemented => fmt::Display::fmt("not implemented", f),
         }
     }
 }
@@ -31,7 +29,6 @@ impl std::error::Error for Error {
         match *self {
             Error::LibMrot(ref libmrot_error) => Some(libmrot_error),
             Error::UndefinedValue(_) => None,
-            Error::NotImplemented => None,
         }
     }
 }

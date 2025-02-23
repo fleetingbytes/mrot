@@ -804,6 +804,7 @@ dependencies = [
  "cucumber",
  "directories 6.0.0",
  "futures",
+ "mrot-test-utils",
  "sqlite",
  "tokio",
  "tracing",
@@ -883,7 +884,7 @@ dependencies = [
 
 [[package]]
 name = "mrot-test-utils"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 dependencies = [
  "cucumber",
  "futures",

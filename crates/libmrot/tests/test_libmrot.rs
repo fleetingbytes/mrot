@@ -41,7 +41,7 @@ async fn add_meal_on_dates(world: &mut World) -> Result<()> {
 #[then(regex = "^the storage contains these records$")]
 async fn storage_contains_records(world: &mut World) -> Result<()> {
     let storage = world.storage.as_ref().ok_or(Error::UndefinedValue("storage".to_string()))?;
-    Err(Error::NotImplemented)
+    todo!("later")
 }
 
 #[tokio::main]
