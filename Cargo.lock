@@ -871,7 +871,7 @@ dependencies = [
 
 [[package]]
 name = "mrot"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.4"
 dependencies = [
  "color-eyre",
  "directories 6.0.0",
@@ -884,7 +884,7 @@ dependencies = [
 
 [[package]]
 name = "mrot-test-utils"
-version = "0.1.0-alpha.3"
+version = "0.1.0-alpha.4"
 dependencies = [
  "chrono",
  "cucumber",
@@ -896,7 +896,7 @@ dependencies = [
 
 [[package]]
 name = "mrot_cli"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.4"
 dependencies = [
  "clap",
  "clap_complete",
@@ -911,7 +911,7 @@ dependencies = [
 
 [[package]]
 name = "mrot_config"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.4"
 dependencies = [
  "confy",
  "serde",
