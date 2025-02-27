@@ -354,6 +354,11 @@ fn get_storage_path() -> Result<String> {
     Ok(file_path.into_os_string().into_string()?)
 }
 
-fn print_completions<G: Generator>(gen: G, cmd: &mut ClapCommand) {
-    generate_completions(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
+fn print_completions<G: Generator>(generator: G, cmd: &mut ClapCommand) {
+    generate_completions(
+        generator,
+        cmd,
+        cmd.get_name().to_string(),
+        &mut io::stdout(),
+    );
 }
