@@ -33,6 +33,10 @@ pub enum Error {
     NoDirectory(String),
     /// when a path does not have a parent directory
     NoParentDirectory,
+    /// Timestamp cannot be converted into [chrono::DateTime]
+    InvalidTimestamp(i64),
+    /// A date which is not an explicit range spans a time period longer than one day
+    DateSpansMoreThanOneDay,
 }
 
 impl fmt::Display for Error {
@@ -53,6 +57,11 @@ impl fmt::Display for Error {
                 fmt::Display::fmt(&format!("cannot find directory for {}", group), f)
             }
             Error::NoParentDirectory => fmt::Display::fmt("cannot find parent directory", f),
+            Error::InvalidTimestamp(i) => fmt::Display::fmt(&format!("invalid timestamp {}", i), f),
+            Error::DateSpansMoreThanOneDay => fmt::Display::fmt(
+                "a date which is not an explicit range spans a time period longer than one day",
+                f,
+            ),
         }
     }
 }
@@ -71,6 +80,8 @@ impl std::error::Error for Error {
             Error::InvalidUnicode(_) => None,
             Error::NoDirectory(_) => None,
             Error::NoParentDirectory => None,
+            Error::InvalidTimestamp(_) => None,
+            Error::DateSpansMoreThanOneDay => None,
         }
     }
 }

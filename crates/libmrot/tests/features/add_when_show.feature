@@ -1,8 +1,33 @@
-Feature: Add meal
+Feature: Add meal, When meal, Show date range
 
-    Scenario: Add meal
-        Given a storage
-        Given some dates
-        Given a meal
-        When I add the meal on those dates to the storage
-        Then the storage contains these records
+    Scenario Outline: Add meal, show when meal
+        Given an empty in-memory storage
+        When I add the meal <meal> on the date <text_date> to the storage
+        Then the storage, asked when <meal> was recorded, returns <naive_dates>
+
+        Examples:
+            | meal    | text_date                                             | naive_dates |
+            | chicken | 2025-02-23                                            | 2025-02-23  |
+            | weasel  | 12 hours before and after noon on February 26th, 2025 | 2025-02-26  |
+            | tuna    | 1 second before February 26th, 2025                   | 2025-02-25  |
+
+     Scenario Outline: Add meal on several dates, show when meal
+        Given an empty in-memory storage
+        When I add the meal <meal> on the dates <text_dates> to the storage
+        Then the storage, asked when <meal> was recorded, returns <naive_dates>
+
+        Examples:
+            | meal    | text_dates                                            | naive_dates                        |
+            | chicken | 2025-02-23; 2025-02-24; 2025-02-25                    | 2025-02-23, 2025-02-24, 2025-02-25 |
+
+     Scenario Outline: Add meal on several dates, ask what meals between dates
+        Given an empty in-memory storage
+        When I add the meal <meal> on the dates <text_dates> to the storage
+        Then the storage, asked for the dates <show_range> returns <meals>
+
+        Examples:
+            | meal    | text_dates                         | show_range                    | meals                     |
+            | chicken | 2025-02-23                         | 2025-02-23                    | chicken                   |
+            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | 2025-02-23                    | chicken                   |
+            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | from 2025-02-23 to 2025-02-24 | chicken, chicken          |
+            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | from 2025-02-23 to 2025-02-25 | chicken, chicken, chicken |

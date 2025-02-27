@@ -5,11 +5,11 @@
 //! [mrot]: https://docs.rs/mrot
 
 mod error;
-#[allow(dead_code)]
 mod meal_record;
 mod storage;
 
 pub use error::Error;
+pub use meal_record::MealRecord;
 pub use storage::Storage;
 
 /// Type alias for results with libmrot's [Error].

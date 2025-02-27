@@ -1,6 +1,7 @@
 //! Library with helper functions and constructs used in the mrot test code
 
 mod error;
+pub mod argument;
 
 pub use error::Error;
 use cucumber::{parser, runner, writer, Cucumber, World as _, WriterExt};
@@ -21,8 +22,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[world(init = Self::default)]
 pub struct World {
     pub storage: Option<Storage>,
-    pub dates: Option<Vec<String>>,
-    pub meal: Option<String>,
 }
 
 /// Clean-up procedure after each scenario
