@@ -16,23 +16,27 @@ keywords = ["tools", "tracking", "meal", "cooking", "calendar"]
 categories = ["command-line-utilities"]
 
 [workspace.dependencies]
+libmrot = { path = "crates/libmrot", version = "0.1.0-alpha.4" }
+mrot_cli = { path = "crates/mrot_cli", version = "0.1.0-alpha.2" }
 mrot_config = { path = "crates/mrot_config", version = "0.1.0-alpha.1" }
-mrot_cli = { path = "crates/mrot_cli", version = "0.1.0-alpha.1" }
-libmrot = { path = "crates/libmrot", version = "0.1.0-alpha.1" }
+mrot-test-utils = { path = "crates/mrot-test-utils" }
 
-chrono = "0.4.34"
-clap = { version = "4.5", features = ["derive"] }
-clap_complete = "4.5"
-clap_complete_nushell = "4.5"
-color-eyre = "0.6.2"
-confy = { version = "0.6.0", features = ["ron_conf"], default-features = false }
-directories = "5.0.1"
-serde = { version = "1.0.217", features = ["derive"] }
-sqlite = "0.33.0"
-tracing = "0.1.40"
-tracing-appender = "0.2.3"
-tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter", "registry"] }
-two_timer = "2.2.5"
+chrono = "0.4"
+clap = { version = "4", features = ["derive"] }
+clap_complete = "4"
+clap_complete_nushell = "4"
+color-eyre = "0.6"
+confy = { version = "0.6", features = ["ron_conf"], default-features = false }
+cucumber = { version = "0.21", features = ["timestamps", "tracing"] }
+directories = "6"
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
+sqlite = "0.36"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time"] }
+tracing = "0.1"
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter", "registry"] }
+two_timer = "2"
 
 [workspace.lints.rust]
 

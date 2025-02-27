@@ -4,7 +4,7 @@
 
 use color_eyre::eyre::Report;
 use directories::ProjectDirs;
-use libmrot::error::Error;
+use libmrot::Error;
 use tracing::error;
 use tracing_appender::non_blocking;
 use tracing_subscriber::{filter::EnvFilter, fmt, fmt::format::FmtSpan, prelude::*};

@@ -1,6 +1,6 @@
 [package]
 name = "libmrot"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.4"
 publish = true
 edition.workspace = true
 rust-version.workspace = true
@@ -19,5 +19,15 @@ sqlite = { workspace = true }
 tracing = { workspace = true }
 two_timer = { workspace = true }
 
+[dev-dependencies]
+cucumber = { workspace = true }
+futures = { workspace = true }
+tokio = { workspace = true }
+mrot-test-utils = { workspace = true }
+
 [lints.rust]
 missing_docs = "deny"
+
+[[test]]
+name = "test_libmrot"
+harness = false

@@ -11,28 +11,32 @@ use two_timer::TimeError;
 /// Mrot error variants
 #[derive(Debug)]
 pub enum Error {
-    /// wraps std::io::Error
+    /// wraps [std::io::Error]
     Io(IoError),
-    /// wraps confy::Error
+    /// wraps [confy::ConfyError]
     Confy(ConfyError),
-    /// wraps sqlite error
+    /// wraps [sqlite::Error]
     Sqlite(SqliteError),
-    /// wraps fmt::Error
+    /// wraps [std::fmt::Error]
     Fmt(fmt::Error),
     /// when something could not be stored in the storage
     Storage,
-    /// wraps Two Timer's TimeError
+    /// wraps [two_timer::TimeError]
     TwoTimer(TimeError),
-    /// if a chrono::NaiveDate cannot be converted to NaiveDateTime
+    /// when a [chrono::NaiveDate] cannot be converted to [chrono::NaiveDateTime]
     TimeNotSupported,
-    /// if the user wrote a time span instead of time
+    /// if the user input a time span instead of time
     TimeSpanNotSupported,
     /// when OsString does not contain valid Unicode
     InvalidUnicode(OsString),
-    /// when directories::ProjectDirs is not found
+    /// when [directories::ProjectDirs] is not found
     NoDirectory(String),
     /// when a path does not have a parent directory
     NoParentDirectory,
+    /// Timestamp cannot be converted into [chrono::DateTime]
+    InvalidTimestamp(i64),
+    /// A date which is not an explicit range spans a time period longer than one day
+    DateSpansMoreThanOneDay,
 }
 
 impl fmt::Display for Error {
@@ -53,6 +57,11 @@ impl fmt::Display for Error {
                 fmt::Display::fmt(&format!("cannot find directory for {}", group), f)
             }
             Error::NoParentDirectory => fmt::Display::fmt("cannot find parent directory", f),
+            Error::InvalidTimestamp(i) => fmt::Display::fmt(&format!("invalid timestamp {}", i), f),
+            Error::DateSpansMoreThanOneDay => fmt::Display::fmt(
+                "a date which is not an explicit range spans a time period longer than one day",
+                f,
+            ),
         }
     }
 }
@@ -71,6 +80,8 @@ impl std::error::Error for Error {
             Error::InvalidUnicode(_) => None,
             Error::NoDirectory(_) => None,
             Error::NoParentDirectory => None,
+            Error::InvalidTimestamp(_) => None,
+            Error::DateSpansMoreThanOneDay => None,
         }
     }
 }
