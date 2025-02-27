@@ -1,6 +1,6 @@
 [package]
 name = "mrot-test-utils"
-version = "0.1.0-alpha.3"
+version = "0.1.0-alpha.4"
 publish = true
 edition.workspace = true
 rust-version.workspace = true
