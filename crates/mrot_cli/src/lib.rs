@@ -4,7 +4,7 @@ use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Pars
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
 use directories::ProjectDirs;
-use libmrot::{Error, Result, Storage};
+use libmrot::{parse_date as parse, Error, Result, Storage};
 use mrot_config::MrotConfig;
 use std::io;
 use tracing::instrument;
@@ -36,6 +36,8 @@ enum Command {
     /// Generate command completions
     #[command(subcommand)]
     Generate(GenerateCommand),
+    /// Parse date
+    ParseDate(ParseDateArgs),
 }
 
 #[derive(Args)]
@@ -80,6 +82,12 @@ struct RemoveArgs {
 
 #[derive(Args)]
 struct RandomArgs;
+
+#[derive(Args)]
+struct ParseDateArgs {
+    /// Date string to parse
+    date: String,
+}
 
 #[derive(Subcommand)]
 enum ConfigCommand {
@@ -333,6 +341,11 @@ pub fn run() -> Result<()> {
                     print_completions(shells::Zsh, &mut cmd);
                 }
             }
+        }
+        Command::ParseDate(parse_date) => {
+            let date = &parse_date.date;
+            let dates = parse(&date)?;
+            println!("{:?}", dates);
         }
     };
     Ok(())

@@ -38,6 +38,8 @@ We regularly cook meals from a small repertoir of recipes. Yet, when deciding wh
 
 * `mrot generate zsh` will generate shell completion for zsh
 
+* `mrot parse-date` will parse a date or a date range and display the result
+
 ## Non-Goals
 
 Mrot is intended to record only the prime meal of the day (lunch). This is because in my family the breakfasts and dinners are routinely the same and change only occasionally. You can record or plan multiple meals on a single day, but they are all equivalent. Mrot will not distinguish if a meal was a breakfast, lunch, or dinner. In queries limiting the number of meals shown, e.g. `mrot plan show --number 3`, such meals are in competition with each other and mrot will show only the first of the matches on that day.
