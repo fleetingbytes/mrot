@@ -64,5 +64,5 @@ async fn check_parse_result(world: &mut World, expected_dates: NaiveDates) -> Re
 #[tokio::main]
 async fn main() {
     let world = construct_world();
-    world.run("tests/features/parse_date.feature").await;
+    world.run("tests/features").await;
 }
