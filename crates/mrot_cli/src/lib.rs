@@ -4,7 +4,7 @@ use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Pars
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
 use directories::ProjectDirs;
-use libmrot::{Error, Result, Storage};
+use libmrot::{parse_date as mrot_parse, Error, Result, Storage};
 use mrot_config::MrotConfig;
 use std::io;
 use tracing::instrument;
@@ -36,6 +36,8 @@ enum Command {
     /// Generate command completions
     #[command(subcommand)]
     Generate(GenerateCommand),
+    /// Parse date
+    ParseDate(ParseDateArgs),
 }
 
 #[derive(Args)]
@@ -80,6 +82,12 @@ struct RemoveArgs {
 
 #[derive(Args)]
 struct RandomArgs;
+
+#[derive(Args)]
+struct ParseDateArgs {
+    /// Date string to parse
+    date: String,
+}
 
 #[derive(Subcommand)]
 enum ConfigCommand {
@@ -334,6 +342,11 @@ pub fn run() -> Result<()> {
                 }
             }
         }
+        Command::ParseDate(parse_date) => {
+            let date = &parse_date.date;
+            let mrot_dates = mrot_parse(&date)?;
+            println!("{:?}", mrot_dates);
+        }
     };
     Ok(())
 }
@@ -354,6 +367,11 @@ fn get_storage_path() -> Result<String> {
     Ok(file_path.into_os_string().into_string()?)
 }
 
-fn print_completions<G: Generator>(gen: G, cmd: &mut ClapCommand) {
-    generate_completions(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
+fn print_completions<G: Generator>(generator: G, cmd: &mut ClapCommand) {
+    generate_completions(
+        generator,
+        cmd,
+        cmd.get_name().to_string(),
+        &mut io::stdout(),
+    );
 }

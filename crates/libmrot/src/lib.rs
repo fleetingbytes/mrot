@@ -4,10 +4,12 @@
 //!
 //! [mrot]: https://docs.rs/mrot
 
+mod convert;
 mod error;
 mod meal_record;
 mod storage;
 
+pub use convert::parse_date;
 pub use error::Error;
 pub use meal_record::MealRecord;
 pub use storage::Storage;

@@ -14,6 +14,7 @@ use tracing_subscriber::{
 };
 use std::{io, path::Path};
 use libmrot::Storage;
+use chrono::NaiveDate;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -22,6 +23,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[world(init = Self::default)]
 pub struct World {
     pub storage: Option<Storage>,
+    pub two_timer_parse_result: Option<String>,
+    pub parse_result: Option<libmrot::Result<Vec<NaiveDate>>>,
 }
 
 /// Clean-up procedure after each scenario
