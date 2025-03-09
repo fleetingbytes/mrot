@@ -20,6 +20,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 libmrot = { workspace = true }
 chrono = { workspace = true }
+two_timer = { workspace = true }
 
 [lints]
 workspace = true

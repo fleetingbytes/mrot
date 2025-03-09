@@ -4,7 +4,7 @@ use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Pars
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
 use directories::ProjectDirs;
-use libmrot::{parse_date as parse, Error, Result, Storage};
+use libmrot::{parse_date as mrot_parse, Error, Result, Storage};
 use mrot_config::MrotConfig;
 use std::io;
 use tracing::instrument;
@@ -344,8 +344,8 @@ pub fn run() -> Result<()> {
         }
         Command::ParseDate(parse_date) => {
             let date = &parse_date.date;
-            let dates = parse(&date)?;
-            println!("{:?}", dates);
+            let mrot_dates = mrot_parse(&date)?;
+            println!("{:?}", mrot_dates);
         }
     };
     Ok(())

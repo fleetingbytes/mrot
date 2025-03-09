@@ -42,13 +42,21 @@ async fn storage_show(world: &mut World, show_range: String, expected_meals: Mea
 
 #[when(regex = "^I parse the date \"(?P<text_date>.*)\"$")]
 async fn parse_the_date(world: &mut World, date: String) -> Result<()> {
+    world.two_timer_parse_result = Some(format!("{:?}", two_timer::parse(&date, None)?));
     world.parse_result = Some(parse_date(&date));
     Ok(())
 }
 
-#[then(regex = r"^the parse result is (?P<naive_dates>.*)$")]
+#[then(regex = r"^two_timer's intermediate parse result is (?P<intermediate>.*)$")]
+async fn check_intermediate_parse_result(world: &mut World, expected: String) -> Result<()> {
+    let actual = world.two_timer_parse_result.clone().ok_or(Error::UndefinedValue("two_timer_parse_result".to_string()))?;
+    assert_eq!(actual, expected, "parse result was {} but we expected {}", actual, expected);
+    Ok(())
+}
+
+#[then(regex = r"^our own parse result is (?P<naive_dates>.*)$")]
 async fn check_parse_result(world: &mut World, expected_dates: NaiveDates) -> Result<()> {
-    let actual_dates = world.parse_result.as_ref().ok_or(Error::UndefinedValue("parse_result".to_string()))?.as_ref().expect("error result");
+    let actual_dates = world.parse_result.as_ref().ok_or(Error::UndefinedValue("parse_result".to_string()))?.as_ref().map_err(|e| Error::UnexpectedErrResult(format!("{:?}", e)))?;
     assert_eq!(*actual_dates, expected_dates.to_vec_naivedate(), "parse result was {:?} but we expected {:?}", actual_dates, expected_dates);
     Ok(())
 }
