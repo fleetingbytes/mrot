@@ -69,15 +69,18 @@ fn remove_last_date(vec: &mut Vec<NaiveDate>) {
 /// Convert human-readable dates to timestamps.
 #[instrument]
 pub(crate) fn convert_to_timestamps(dates: &Vec<String>) -> Result<Vec<i64>> {
-    let mut result: Vec<i64> = Vec::new();
-    for date in dates {
-        let naive_dates: Vec<NaiveDate> = parse_date(date)?;
-        for naive_date in naive_dates {
-            let timestamp = convert_date_to_timestamp(naive_date)?;
-            result.push(timestamp);
-        }
-    }
-    Ok(result)
+    dates
+        .iter()
+        .map(|date| {
+            parse_date(date).and_then(|naive_dates| {
+                naive_dates
+                    .into_iter()
+                    .map(convert_date_to_timestamp)
+                    .collect::<Result<Vec<i64>>>()
+            })
+        })
+        .collect::<Result<Vec<Vec<i64>>>>()
+        .map(|vecs| vecs.into_iter().flatten().collect())
 }
 
 #[instrument(level = "debug", fields(result))]
