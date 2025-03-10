@@ -27,7 +27,7 @@ pub struct Show {
 impl Default for Show {
     fn default() -> Self {
         Self {
-            range: "from three days before today until one day after tomorrow".to_string(),
+            range: "from three days before today through tomorrow".to_string(),
         }
     }
 }

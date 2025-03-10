@@ -108,11 +108,10 @@ impl Storage {
 
     /// Show what meals were recorded in the given date range.
     pub fn show(&self, date_range: &str) -> Result<Vec<MealRecord>> {
-        let strings = vec![String::from(date_range)];
-        let dates = convert_to_timestamps(&strings)?;
-        // dates are guaranteed to be a vector of at least one element
-        let start = dates.iter().next().unwrap();
-        let end = dates.iter().last().unwrap();
+        let timestamps = convert_to_timestamps(&vec![String::from(date_range)])?;
+        // timestamps are guaranteed to be a vector of at least one element
+        let start = timestamps.iter().next().unwrap();
+        let end = timestamps.iter().last().unwrap();
         let query =
             "SELECT date, meal FROM meals WHERE date >= :start AND date <= :end ORDER BY date ASC";
         let mut statement = self.connection.prepare(query)?;

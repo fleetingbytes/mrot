@@ -7,8 +7,8 @@ use tracing::{instrument, Span};
 /// Parses a given string into a vector of naive dates.
 /// Implicit or explicit time ranges (see [literal range][two-timer]) may result in multiple dates,
 /// if the range is longer than one full day.
-/// See the [parse date feature file][parse-date-feature] for detailed examples.
-/// [parse-date-feature]: https://github.com/fleetingbytes/mrot/tree/master/crates/libmrot/tests/features/parse_date.feature
+/// See the [parse date feature file](https://github.com/fleetingbytes/mrot/tree/master/crates/libmrot/tests/features/parse_date.feature)
+/// for detailed examples.
 #[instrument]
 pub fn parse_date(date: &str) -> Result<Vec<NaiveDate>> {
     let (start_datetime, end_datetime, range_is_explicit) = two_timer::parse(date, None)?;
@@ -66,7 +66,8 @@ fn remove_last_date(vec: &mut Vec<NaiveDate>) {
     _ = vec.pop();
 }
 
-/// Convert human-readable dates to timestamps.
+/// Convert human-readable dates to timestamps. The result vector is guaranteed to contain
+/// at least one timestamp per string in the input vector.
 #[instrument]
 pub(crate) fn convert_to_timestamps(dates: &Vec<String>) -> Result<Vec<i64>> {
     dates
