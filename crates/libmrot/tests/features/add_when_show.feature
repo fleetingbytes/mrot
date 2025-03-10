@@ -26,8 +26,8 @@ Feature: Add meal, When meal, Show date range
         Then the storage, asked for the dates <show_range> returns <meals>
 
         Examples:
-            | meal    | text_dates                         | show_range                    | meals                     |
-            | chicken | 2025-02-23                         | 2025-02-23                    | chicken                   |
-            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | 2025-02-23                    | chicken                   |
-            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | from 2025-02-23 to 2025-02-24 | chicken, chicken          |
-            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | from 2025-02-23 to 2025-02-25 | chicken, chicken, chicken |
+            | meal    | text_dates                         | show_range                         | meals                     |
+            | chicken | 2025-02-23                         | 2025-02-23                         | chicken                   |
+            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | 2025-02-23                         | chicken                   |
+            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | from 2025-02-23 to 2025-02-25      | chicken, chicken          |
+            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | from 2025-02-23 through 2025-02-25 | chicken, chicken, chicken |

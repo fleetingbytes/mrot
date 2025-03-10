@@ -1,12 +1,12 @@
 //! Storage for meal records
 
+use crate::convert::{convert_to_naive_date, convert_to_timestamps};
 use crate::error::Error;
 use crate::{MealRecord, Result};
-use chrono::{naive::NaiveDate, DateTime, TimeDelta};
+use chrono::naive::NaiveDate;
 use sqlite::{Connection, State, Value};
 use std::{fmt, path::Path};
-use tracing::{instrument, trace, Span};
-use two_timer::parse;
+use tracing::{instrument, trace};
 
 /// Storage for meal data.
 pub struct Storage {
@@ -73,7 +73,7 @@ impl Storage {
     /// Adds a meal on the given dates to the storage.
     #[instrument]
     pub fn add_meal_on_dates(&self, meal: &str, dates: &Vec<String>) -> Result<()> {
-        let converted_dates = Self::convert_to_timestamps(dates)?;
+        let converted_dates = convert_to_timestamps(dates)?;
 
         self.connection.execute("BEGIN TRANSACTION")?;
         let query = "INSERT INTO meals VALUES (:date, :meal)";
@@ -91,44 +91,6 @@ impl Storage {
         Ok(())
     }
 
-    /// Convert human-readable dates to timestamps.
-    #[instrument]
-    fn convert_to_timestamps(dates: &Vec<String>) -> Result<Vec<i64>> {
-        dates
-            .iter()
-            .map(|date| Self::parse_date(date).and_then(Self::convert_date_to_timestamp))
-            .collect()
-    }
-
-    /// Parses a date string into NaiveDate.
-    #[instrument(level = "debug", fields(result))]
-    fn parse_date(date: &str) -> Result<NaiveDate> {
-        let (naive_datetime, end_date, range) = parse(date, None)?;
-        trace!(%naive_datetime, %end_date, %range);
-        if range {
-            return Err(Error::TimeSpanNotSupported);
-        } else {
-            let timedelta = end_date - naive_datetime;
-            if timedelta > TimeDelta::days(1) {
-                return Err(Error::DateSpansMoreThanOneDay);
-            }
-        }
-        let naive_date = naive_datetime.date();
-        Span::current().record("result", &naive_date.to_string());
-        Ok(naive_date)
-    }
-
-    #[instrument(level = "debug", fields(result))]
-    fn convert_date_to_timestamp(date: NaiveDate) -> Result<i64> {
-        let timestamp = date
-            .and_hms_opt(0, 0, 0)
-            .ok_or(Error::TimeNotSupported)?
-            .and_utc()
-            .timestamp();
-        Span::current().record("result", &timestamp);
-        Ok(timestamp)
-    }
-
     /// Show on what dates a meal was recorded.
     #[instrument]
     pub fn when(&self, meal: &str) -> Result<Vec<NaiveDate>> {
@@ -138,37 +100,28 @@ impl Storage {
         let mut naive_dates: Vec<NaiveDate> = vec![];
         while let Ok(State::Row) = statement.next() {
             let timestamp = statement.read::<i64, _>("date")?;
-            let naive_date = Self::convert_to_naive_date(timestamp)?;
+            let naive_date = convert_to_naive_date(timestamp)?;
             naive_dates.push(naive_date);
         }
         Ok(naive_dates)
     }
 
-    fn convert_to_naive_date(i: i64) -> Result<NaiveDate> {
-        let dt = DateTime::from_timestamp(i, 0).ok_or(Error::InvalidTimestamp(i))?;
-        Ok(dt.date_naive())
-    }
-
     /// Show what meals were recorded in the given date range.
     pub fn show(&self, date_range: &str) -> Result<Vec<MealRecord>> {
-        let (start_date, end_date, range) = parse(date_range, None)?;
-        let start = Self::convert_date_to_timestamp(start_date.into())?;
-        let end = Self::convert_date_to_timestamp(end_date.into())?;
-        let query = match range {
-            true => "SELECT date, meal FROM meals WHERE date >= :start AND date <= :end ORDER BY date ASC",
-            false => "SELECT date, meal FROM meals WHERE date = :start",
-        };
+        let strings = vec![String::from(date_range)];
+        let dates = convert_to_timestamps(&strings)?;
+        // dates are guaranteed to be a vector of at least one element
+        let start = dates.iter().next().unwrap();
+        let end = dates.iter().last().unwrap();
+        let query =
+            "SELECT date, meal FROM meals WHERE date >= :start AND date <= :end ORDER BY date ASC";
         let mut statement = self.connection.prepare(query)?;
-        if range {
-            statement
-                .bind_iter::<_, (_, Value)>([(":start", start.into()), (":end", end.into())])?;
-        } else {
-            statement.bind_iter::<_, (_, Value)>([(":start", start.into())])?;
-        }
+        statement
+            .bind_iter::<_, (_, Value)>([(":start", (*start).into()), (":end", (*end).into())])?;
         let mut records: Vec<MealRecord> = vec![];
         while let Ok(State::Row) = statement.next() {
             let timestamp = statement.read::<i64, _>("date")?;
-            let date = Self::convert_to_naive_date(timestamp)?;
+            let date = convert_to_naive_date(timestamp)?;
             let meal = statement.read::<String, _>("meal")?;
             records.push(MealRecord { meal, date });
         }

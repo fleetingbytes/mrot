@@ -1,8 +1,8 @@
 //! Functions to convert between various formats of dates.
 
-use crate::Result;
-use chrono::{Days, NaiveDate, NaiveDateTime, TimeDelta};
-use tracing::instrument;
+use crate::{Error, Result};
+use chrono::{DateTime, Days, NaiveDate, NaiveDateTime, TimeDelta};
+use tracing::{instrument, Span};
 
 /// Parses a given string into a vector of naive dates.
 /// Implicit or explicit time ranges (see [literal range][two-timer]) may result in multiple dates,
@@ -64,4 +64,34 @@ fn generate_date_offset_by_n_days(start: NaiveDateTime, n: u64) -> NaiveDateTime
 #[instrument]
 fn remove_last_date(vec: &mut Vec<NaiveDate>) {
     _ = vec.pop();
+}
+
+/// Convert human-readable dates to timestamps.
+#[instrument]
+pub(crate) fn convert_to_timestamps(dates: &Vec<String>) -> Result<Vec<i64>> {
+    let mut result: Vec<i64> = Vec::new();
+    for date in dates {
+        let naive_dates: Vec<NaiveDate> = parse_date(date)?;
+        for naive_date in naive_dates {
+            let timestamp = convert_date_to_timestamp(naive_date)?;
+            result.push(timestamp);
+        }
+    }
+    Ok(result)
+}
+
+#[instrument(level = "debug", fields(result))]
+fn convert_date_to_timestamp(date: NaiveDate) -> Result<i64> {
+    let timestamp = date
+        .and_hms_opt(0, 0, 0)
+        .ok_or(Error::TimeNotSupported)?
+        .and_utc()
+        .timestamp();
+    Span::current().record("result", &timestamp);
+    Ok(timestamp)
+}
+
+pub(crate) fn convert_to_naive_date(i: i64) -> Result<NaiveDate> {
+    let dt = DateTime::from_timestamp(i, 0).ok_or(Error::InvalidTimestamp(i))?;
+    Ok(dt.date_naive())
 }
