@@ -11,7 +11,7 @@ use two_timer::TimeError;
 pub enum Error {
     /// wraps [libmrot::Error]
     LibMrot(LibMrotError),
-    /// Bug in the test code. A value in the [World] was supposed to be defined but wasn't.
+    /// Bug in the test code. A value in the [`World`](crate::World) was supposed to be defined but wasn't.
     UndefinedValue(String),
     /// wraps [chrono::ParseError]
     Chrono(ParseError),

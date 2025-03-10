@@ -61,7 +61,7 @@ struct WhatArgs {
 
 #[derive(Args)]
 struct ShowArgs {
-    /// Time range to shows meals from
+    /// Date or date range to show meals from (overrides config)
     range: Option<String>,
 }
 
@@ -249,6 +249,7 @@ pub fn run() -> Result<()> {
         Command::Show(show) => {
             if let Some(range) = &show.range {
                 println!("show range is {}", range);
+                // TODO: open actual storage on disk
                 let _storage = Storage::open(":memory")?;
                 println!("here I would show the meals in the given date range");
             } else {
@@ -292,7 +293,7 @@ pub fn run() -> Result<()> {
                         }
                     },
                     ConfigGetCommand::Show(_) => {
-                        println!("{}", cfg.show.range);
+                        println!("{:?}", cfg.show.range);
                     }
                 },
                 ConfigCommand::Ignore(config_ignore) => match config_ignore {
