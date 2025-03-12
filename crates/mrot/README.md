@@ -6,22 +6,46 @@ Helps you to rotate through the meals you cook by suggesting what to cook next.
 
 We regularly cook meals from a small repertoir of recipes. Yet, when deciding what to cook next, we struggle to remember which meals we didn't have in a while. The Meal Rotator, or *mrot* for short, records the dates when you last cooked spaghetti, pizza, or had a steak. The meals not cooked in the longest time become likely candidates to suggest to cook next.
 
-## How does mrot decide what to suggest?
+## Quick Start
 
-By using the `add` subcommand you tell mrot what meal you cooked on what date. The same subcommand enables you to plan some meals for the days to come, if you wish to do so. You also maintain two ignore-lists in mrot's configuration. One is a static ignore list with meals you wouldn't like to cook in the forseeable future (`config ignore`). Another is a dynamic ignore list with meals which you have planned to cook in the next few days (`config look-ahead`). That's the part you do.
+By using the `add` subcommand you tell mrot what meal you cooked on what date. The same subcommand enables you to plan some meals for the days to come, if you wish to do so.
 
-Then you can run the `what` subcommand, mrot looks through the data you recorded and does the following:
+```sh
+$ mrot add spaghetti --date "from March 1 through March 2"
+$ mrot add "meat balls" --date "from March 3 through March 4"
+$ mrot add pizza --date "March 5"
+$ mrot add steak --date "March 6"
+$ mrot add "lentils and wieners" --date "from March 8 through March 9"
+$ # assuming today is March 9
+$ # plan to have meat balls on March 11
+$ mrot add "meat balls" --date "one day after tomorrow"
+$ mrot what
+spaghetti
+pizza
+steak
+```
+
+Notice how meat balls were not suggested even though you haven't had them for a longer time than a pizza or a steak. That is because they are already on your cooking plan for the days to come.
+
+### Getting Meal Suggestions
+
+When you can run the `what` subcommand, mrot looks through the data you recorded and does the following:
 
 * if you have any meal planned for tomorrow, suggest that
 
 otherwise:
 
-* get a list of unique meals
+* get a list of unique meals from your records
 * filter out the meals from the ignore list
 * filter out the meals planned for the next few days
-* look up the last date when each of the remaining meals were cooked and suggest some of those with the earliest dates
+* look up the last date when each of the remaining meals were cooked and suggest those with the earliest dates
+* limit the number of suggestions according to mrot's configuration or the CLI option
 
-## Usage
+### Ignoring Meals
+
+Mrot's default configuration is to suggest three meals while ignoring any meal that is planned to be cooked in the next five days. You can set the number of these look-ahead days in the configuration (`config look-ahead`) or override it with the `--number` option. Meals you generally would not want to cook in the froseeable future can be put on a separate ignore list (`config ignore`).
+
+## Feature Ovewiew
 
 ### Record or Plan Meals
 
@@ -41,15 +65,17 @@ In order for you to check whether a certain date expression can be parsed or how
 * `mrot parse-date "from yesterday through today"`
 * `mrot parse-date "one day before and after today"` (This actually includes tomorrow, unlike two_timer's parse result.)
 
-### Get Cooking Suggestions
+### Getting Cooking Suggestions
 
-* `mrot what` will show you some meals which you haven't had for the longest time
-* `mrot what --number 5` will show you (at most) five meals which you haven't had for the longest time
-* `mrot what --ignore liver --ignore salad` will show you will show you some meals which you haven't had for the longest time, ignoring liver and salad (this supersedes your usual ignore list from your mrot configuration)
-* `mrot what --no-look-ahead` will show you will show you some meals which you haven't had for the longest time, ignoring any meals you might have planned to cook in the near future.
-* `mrot what --no-ignore` will show you will show you some meals which you haven't had for the longest time, not taking the ignore list from your mrot configuration into account
+* `mrot what` will suggest some meals to cook, taking your planned and ignored meals into account
+* `mrot what --no-look-ahead` same as above, potentially including any meals you may have planned to cook in the near future.
+* `mrot what --ignore liver --ignore salad` same as above, ignoring liver and salad (this supersedes your regular ignore list from your mrot configuration)
+* `mrot what --no-ignore` same as above, not taking the ignore list from your mrot configuration into account
+* `mrot what --number 5` same as above, overriding the regular number of meals to show. The given number is the upper limit. If you have not recorded enough meals to reach this number of suggestions, mrot will suggest less.
 
-* `mrot random` will show you one random meal from your past or planned meals. This can also pick the meals from the ignore list or the ones planned for the future.
+#### Random Meal
+
+* `mrot random` will show you one random meal from all of your records. This can also pick the meals from the ignore list or the ones planned for the future. The date when this meal was last cooked does not play any role.
 
 ### Browsing Meals
 
@@ -58,6 +84,8 @@ In order for you to check whether a certain date expression can be parsed or how
 * `mrot show "this week"` will show the past and future meals in this week
 
 * `mrot when "spaghetti"` will show the past and future dates where spaghetti were recorded
+
+* `mrot unique` will show you all unique meal names used in your records or on the ignore list
 
 ### Managing Recorded Meals
 
@@ -76,9 +104,9 @@ In order for you to check whether a certain date expression can be parsed or how
 * `mrot config ignore clear` will remove everything from the ignore list
 * `mrot config path` will show the path to the config file
 
-### Command Completion
+### Command Completions
 
-* `mrot generate zsh` will generate shell completion for zsh (completions other shells available, too)
+* `mrot generate zsh` will generate shell completions for zsh (completions for Bash, Elvish, Fish, Nushell, PowerShell are also available)
 
 ## Non-Goals
 
