@@ -42,9 +42,13 @@ impl fmt::Display for Error {
             Error::Fmt(fmt_error) => fmt::Display::fmt(fmt_error, f),
             Error::TwoTimer(time_error) => fmt::Display::fmt(time_error, f),
             Error::TimeNotSupported => fmt::Display::fmt("such time is not supported", f),
-            Error::InvalidUnicode(os_string) => {
-                fmt::Display::fmt(os_string.to_string_lossy().into_owned().as_str(), f)
-            }
+            Error::InvalidUnicode(os_string) => fmt::Display::fmt(
+                &format!(
+                    "invalid Unicode string: {}",
+                    os_string.to_string_lossy().into_owned().as_str()
+                ),
+                f,
+            ),
             Error::NoDirectory(group) => {
                 fmt::Display::fmt(&format!("cannot find directory for {}", group), f)
             }

@@ -1,6 +1,9 @@
 //! CLI for mrot
 
-use clap::{ArgAction::Append, Args, Command as ClapCommand, CommandFactory, Parser, Subcommand};
+use clap::{
+    ArgAction::{Append, SetTrue},
+    Args, Command as ClapCommand, CommandFactory, Parser, Subcommand,
+};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
 use directories::ProjectDirs;
@@ -57,6 +60,12 @@ struct WhatArgs {
     /// Ignore a certain meal (can use multiple times, overrides config)
     #[arg(short, long, action = Append)]
     ignore: Option<Vec<String>>,
+    /// Include ignored meals
+    #[arg(short = 'I', long, action = SetTrue, conflicts_with = "ignore")]
+    no_ignore: bool,
+    /// Disregard planned meals
+    #[arg(short = 'L', long, action = SetTrue)]
+    no_look_ahead: bool,
 }
 
 #[derive(Args)]
@@ -117,12 +126,20 @@ enum ConfigSetCommand {
 enum ConfigSetWhatCommand {
     /// Set the max number of meals suggested
     Number(ConfigSetWhatNumberArgs),
+    /// Set the number of days to look ahead for planned meals
+    LookAhead(ConfigSetWhatLookAheadArgs),
 }
 
 #[derive(Args)]
 struct ConfigSetWhatNumberArgs {
     /// Max number of meals to suggest
     number: usize,
+}
+
+#[derive(Args)]
+struct ConfigSetWhatLookAheadArgs {
+    /// Number of days to look-ahead for planned meals
+    look_ahead: usize,
 }
 
 #[derive(Args)]
@@ -144,10 +161,15 @@ enum ConfigGetCommand {
 enum ConfigGetWhatCommand {
     /// Max number of meals to suggest
     Number(ConfigGetWhatNumberArgs),
+    /// Days to look-ahead for planned meals
+    LookAhead(ConfigGetWhatLookAheadArgs),
 }
 
 #[derive(Args)]
 struct ConfigGetWhatNumberArgs;
+
+#[derive(Args)]
+struct ConfigGetWhatLookAheadArgs;
 
 #[derive(Args)]
 struct ConfigGetShowArgs;
@@ -244,7 +266,18 @@ pub fn run() -> Result<()> {
             if let Some(ref ignore) = what.ignore {
                 println!("what ignore is {:?}", ignore);
             }
-            println!("what is run");
+            println!("what no_ignore is {}", what.no_ignore);
+            println!("what no_look_ahead is {}", what.no_look_ahead);
+            println!("configured ignore list is {:?}", cfg.what.ignore);
+            println!(
+                "resulting ignore list is {:?}",
+                if what.no_ignore {
+                    Vec::new()
+                } else {
+                    cfg.what.ignore.to_vec_string()
+                }
+            );
+            println!("storage::what is run");
         }
         Command::Show(show) => {
             if let Some(range) = &show.range {
@@ -279,6 +312,9 @@ pub fn run() -> Result<()> {
                             ConfigSetWhatCommand::Number(config_set_what_number) => {
                                 cfg.what.number = config_set_what_number.number;
                             }
+                            ConfigSetWhatCommand::LookAhead(config_set_what_look_ahead) => {
+                                cfg.what.look_ahead = config_set_what_look_ahead.look_ahead;
+                            }
                         },
                         ConfigSetCommand::Show(config_set_show) => {
                             cfg.show.range = config_set_show.range.clone();
@@ -291,6 +327,9 @@ pub fn run() -> Result<()> {
                         ConfigGetWhatCommand::Number(_) => {
                             println!("{}", cfg.what.number);
                         }
+                        ConfigGetWhatCommand::LookAhead(_) => {
+                            println!("{}", cfg.what.look_ahead);
+                        }
                     },
                     ConfigGetCommand::Show(_) => {
                         println!("{:?}", cfg.show.range);
@@ -298,20 +337,20 @@ pub fn run() -> Result<()> {
                 },
                 ConfigCommand::Ignore(config_ignore) => match config_ignore {
                     ConfigIgnoreCommand::Add(config_ignore_add) => {
-                        cfg.ignore.add(&config_ignore_add.meal);
+                        cfg.what.ignore.add(&config_ignore_add.meal);
                         confy::store(APP_NAME, CONFIG_FILE_NAME, cfg)?
                     }
                     ConfigIgnoreCommand::Remove(config_ignore_remove) => {
-                        cfg.ignore.remove(&config_ignore_remove.meal);
+                        cfg.what.ignore.remove(&config_ignore_remove.meal);
                         confy::store(APP_NAME, CONFIG_FILE_NAME, cfg)?
                     }
                     ConfigIgnoreCommand::Show(_) => {
-                        if !cfg.ignore.is_empty() {
-                            println!("{}", cfg.ignore);
+                        if !cfg.what.ignore.is_empty() {
+                            println!("{}", cfg.what.ignore);
                         }
                     }
                     ConfigIgnoreCommand::Clear(_) => {
-                        cfg.ignore.clear();
+                        cfg.what.ignore.clear();
                         confy::store(APP_NAME, CONFIG_FILE_NAME, cfg)?
                     }
                 },
@@ -375,4 +414,9 @@ fn print_completions<G: Generator>(generator: G, cmd: &mut ClapCommand) {
         cmd.get_name().to_string(),
         &mut io::stdout(),
     );
+}
+
+#[test]
+fn verify_cli() {
+    Cli::command().debug_assert();
 }
