@@ -5,17 +5,22 @@ use std::fmt;
 pub struct MrotConfig {
     pub what: What,
     pub show: Show,
-    pub ignore: Ignore,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct What {
     pub number: usize,
+    pub ignore: Ignore,
+    pub look_ahead: usize,
 }
 
 impl Default for What {
     fn default() -> Self {
-        Self { number: 3 }
+        Self {
+            number: 3,
+            ignore: Ignore::default(),
+            look_ahead: 5,
+        }
     }
 }
 
@@ -47,6 +52,9 @@ impl Ignore {
     }
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+    pub fn to_vec_string(&self) -> Vec<String> {
+        self.0.clone()
     }
 }
 
