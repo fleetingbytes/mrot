@@ -26,7 +26,6 @@ chrono = "0.4"
 clap = { version = "4", features = ["derive"] }
 clap_complete = "4"
 clap_complete_nushell = "4"
-color-eyre = "0.6"
 confy = { version = "0.6", features = ["ron_conf"], default-features = false }
 cucumber = { version = "0.21", features = ["timestamps", "tracing"] }
 directories = "6"

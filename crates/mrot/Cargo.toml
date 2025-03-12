@@ -15,7 +15,6 @@ readme = "README.md"
 [dependencies]
 libmrot = { workspace = true }
 mrot_cli = { workspace = true }
-color-eyre = { workspace = true }
 directories = { workspace = true }
 tracing = { workspace = true }
 tracing-appender = { workspace = true }
