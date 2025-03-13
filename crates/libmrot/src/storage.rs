@@ -126,6 +126,18 @@ impl Storage {
         }
         Ok(records)
     }
+
+    /// Suggest meals to cook. Returns [MealRecord]s of the suggested meals and the last dates when
+    /// they were cooked.
+    #[allow(unused_variables)]
+    pub fn what(
+        &self,
+        number: usize,
+        ignore: &Vec<String>,
+        look_ahead: Option<&String>,
+    ) -> Result<Vec<MealRecord>> {
+        todo!();
+    }
 }
 
 impl fmt::Debug for Storage {
