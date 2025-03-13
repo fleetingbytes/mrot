@@ -60,11 +60,14 @@ struct WhatArgs {
     /// Ignore a certain meal (can use multiple times, overrides config)
     #[arg(short, long, action = Append)]
     ignore: Option<Vec<String>>,
+    /// Ignore meals planned in this time span
+    #[arg(short, long)]
+    look_ahead: Option<String>,
     /// Include ignored meals
     #[arg(short = 'I', long, action = SetTrue, conflicts_with = "ignore")]
     no_ignore: bool,
     /// Disregard planned meals
-    #[arg(short = 'L', long, action = SetTrue)]
+    #[arg(short = 'L', long, action = SetTrue, conflicts_with = "look_ahead")]
     no_look_ahead: bool,
 }
 
@@ -139,7 +142,7 @@ struct ConfigSetWhatNumberArgs {
 #[derive(Args)]
 struct ConfigSetWhatLookAheadArgs {
     /// Number of days to look-ahead for planned meals
-    look_ahead: usize,
+    look_ahead: Option<String>,
 }
 
 #[derive(Args)]
@@ -263,21 +266,33 @@ pub fn run() -> Result<()> {
             if let Some(ref number) = what.number {
                 println!("what number is {}", number);
             }
+            println!("configured number is {}", cfg.what.number);
+            let number = what.number.unwrap_or(cfg.what.number);
+            println!("resulting number is {}", number);
             if let Some(ref ignore) = what.ignore {
                 println!("what ignore is {:?}", ignore);
             }
             println!("what no_ignore is {}", what.no_ignore);
-            println!("what no_look_ahead is {}", what.no_look_ahead);
             println!("configured ignore list is {:?}", cfg.what.ignore);
-            println!(
-                "resulting ignore list is {:?}",
-                if what.no_ignore {
-                    Vec::new()
-                } else {
-                    cfg.what.ignore.to_vec_string()
-                }
-            );
+            let ignore_list = if what.no_ignore {
+                Vec::new()
+            } else {
+                cfg.what.ignore.to_vec_string()
+            };
+            println!("resulting ignore list is {:?}", ignore_list);
+            println!("what no_look_ahead is {}", what.no_look_ahead);
+            println!("what look_ahead is {:?}", what.look_ahead);
+            println!("configured look_ahead is {:?}", cfg.what.look_ahead);
+            let look_ahead = if what.no_look_ahead {
+                None
+            } else {
+                what.look_ahead.clone().or(cfg.what.look_ahead)
+            };
+            println!("resulting look-ahead is {:?}", look_ahead);
             println!("storage::what is run");
+            let storage = open_storage()?;
+            let meals = storage.what(number, &ignore_list, look_ahead.as_ref())?;
+            println!("{:?}", meals);
         }
         Command::Show(show) => {
             if let Some(range) = &show.range {
@@ -313,7 +328,7 @@ pub fn run() -> Result<()> {
                                 cfg.what.number = config_set_what_number.number;
                             }
                             ConfigSetWhatCommand::LookAhead(config_set_what_look_ahead) => {
-                                cfg.what.look_ahead = config_set_what_look_ahead.look_ahead;
+                                cfg.what.look_ahead = config_set_what_look_ahead.look_ahead.clone();
                             }
                         },
                         ConfigSetCommand::Show(config_set_show) => {
@@ -327,9 +342,10 @@ pub fn run() -> Result<()> {
                         ConfigGetWhatCommand::Number(_) => {
                             println!("{}", cfg.what.number);
                         }
-                        ConfigGetWhatCommand::LookAhead(_) => {
-                            println!("{}", cfg.what.look_ahead);
-                        }
+                        ConfigGetWhatCommand::LookAhead(_) => match cfg.what.look_ahead {
+                            Some(look_ahead) => println!("{}", look_ahead),
+                            None => {}
+                        },
                     },
                     ConfigGetCommand::Show(_) => {
                         println!("{:?}", cfg.show.range);
