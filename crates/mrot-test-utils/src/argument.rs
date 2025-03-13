@@ -2,7 +2,7 @@
 //! a string.
 
 use crate::Error;
-use chrono::naive::NaiveDate;
+use chrono::{naive::NaiveDate, DateTime};
 use std::{fmt, str::FromStr};
 
 const NAIVE_DATE_PARSE_FROM_STRING_FORMAT: &str = "%Y-%m-%d";
@@ -98,5 +98,33 @@ impl FromStr for Meals {
 impl fmt::Debug for Meals {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(&self.0).finish()
+    }
+}
+
+#[derive(Default)]
+pub struct DateString(String);
+
+impl FromStr for DateString {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let timestamp = i64::from_str(s)?;
+        let dt = DateTime::from_timestamp(timestamp, 0)
+            .ok_or(libmrot::Error::InvalidTimestamp(timestamp))?;
+        let naive_date = dt.date_naive();
+        let result_string = naive_date.format("%Y-%m-%d").to_string();
+        Ok(DateString(result_string))
+    }
+}
+
+impl fmt::Debug for DateString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "DateString({})", self.0)
+    }
+}
+
+impl fmt::Display for DateString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

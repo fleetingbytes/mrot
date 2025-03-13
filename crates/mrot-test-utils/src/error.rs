@@ -4,6 +4,7 @@ use chrono::ParseError;
 use libmrot::Error as LibMrotError;
 use std::convert::From;
 use std::fmt;
+use std::num::ParseIntError;
 use two_timer::TimeError;
 
 /// Mrot error variants
@@ -19,6 +20,8 @@ pub enum Error {
     UnexpectedErrResult(String),
     /// Wraps [two_timer::TimeError]
     TwoTimer(TimeError),
+    /// Wraps [std::num::ParseIntError]
+    StdNum(ParseIntError),
 }
 
 impl fmt::Display for Error {
@@ -31,6 +34,7 @@ impl fmt::Display for Error {
             Error::Chrono(parse_error) => fmt::Display::fmt(parse_error, f),
             Error::UnexpectedErrResult(error) => fmt::Display::fmt(&error, f),
             Error::TwoTimer(time_error) => fmt::Display::fmt(time_error, f),
+            Error::StdNum(parse_int_error) => fmt::Display::fmt(parse_int_error, f),
         }
     }
 }
@@ -43,6 +47,7 @@ impl std::error::Error for Error {
             Error::Chrono(ref parse_error) => Some(parse_error),
             Error::UnexpectedErrResult(_) => None,
             Error::TwoTimer(ref time_error) => Some(time_error),
+            Error::StdNum(ref parse_int_error) => Some(parse_int_error),
         }
     }
 }
@@ -62,5 +67,11 @@ impl From<ParseError> for Error {
 impl From<TimeError> for Error {
     fn from(value: TimeError) -> Self {
         Error::TwoTimer(value)
+    }
+}
+
+impl From<ParseIntError> for Error {
+    fn from(value: ParseIntError) -> Self {
+        Error::StdNum(value)
     }
 }
