@@ -62,7 +62,7 @@ struct WhatArgs {
     ignore: Option<Vec<String>>,
     /// Ignore meals planned in this time span
     #[arg(short, long)]
-    look_ahead: Option<String>,
+    look_ahead: Option<usize>,
     /// Include ignored meals
     #[arg(short = 'I', long, action = SetTrue, conflicts_with = "ignore")]
     no_ignore: bool,
@@ -141,8 +141,8 @@ struct ConfigSetWhatNumberArgs {
 
 #[derive(Args)]
 struct ConfigSetWhatLookAheadArgs {
-    /// Number of days to look-ahead for planned meals
-    look_ahead: Option<String>,
+    /// Number of days after tomorrow to look-ahead for planned meals
+    look_ahead: usize,
 }
 
 #[derive(Args)]
@@ -284,14 +284,18 @@ pub fn run() -> Result<()> {
             println!("what look_ahead is {:?}", what.look_ahead);
             println!("configured look_ahead is {:?}", cfg.what.look_ahead);
             let look_ahead = if what.no_look_ahead {
-                None
+                Vec::new()
             } else {
-                what.look_ahead.clone().or(cfg.what.look_ahead)
+                let days = what.look_ahead.unwrap_or(cfg.what.look_ahead);
+                mrot_parse(&format!(
+                    "from one day after tomorrow through {} days after tomorrow",
+                    days
+                ))?
             };
             println!("resulting look-ahead is {:?}", look_ahead);
             println!("storage::what is run");
             let storage = open_storage()?;
-            let meals = storage.what(number, &ignore_list, look_ahead.as_ref())?;
+            let meals = storage.what(number, &ignore_list, &look_ahead)?;
             println!("{:?}", meals);
         }
         Command::Show(show) => {
@@ -328,7 +332,9 @@ pub fn run() -> Result<()> {
                                 cfg.what.number = config_set_what_number.number;
                             }
                             ConfigSetWhatCommand::LookAhead(config_set_what_look_ahead) => {
-                                cfg.what.look_ahead = config_set_what_look_ahead.look_ahead.clone();
+                                // TODO return a proper Error;
+                                assert!(config_set_what_look_ahead.look_ahead > 0, "must be >0");
+                                cfg.what.look_ahead = config_set_what_look_ahead.look_ahead;
                             }
                         },
                         ConfigSetCommand::Show(config_set_show) => {
@@ -342,10 +348,9 @@ pub fn run() -> Result<()> {
                         ConfigGetWhatCommand::Number(_) => {
                             println!("{}", cfg.what.number);
                         }
-                        ConfigGetWhatCommand::LookAhead(_) => match cfg.what.look_ahead {
-                            Some(look_ahead) => println!("{}", look_ahead),
-                            None => {}
-                        },
+                        ConfigGetWhatCommand::LookAhead(_) => {
+                            println!("{}", cfg.what.look_ahead);
+                        }
                     },
                     ConfigGetCommand::Show(_) => {
                         println!("{:?}", cfg.show.range);
