@@ -2,10 +2,7 @@
 
 use confy::ConfyError;
 use sqlite::Error as SqliteError;
-use std::convert::From;
-use std::ffi::OsString;
-use std::fmt;
-use std::io::Error as IoError;
+use std::{convert::From, ffi::OsString, fmt, io::Error as IoError, num::ParseIntError};
 use two_timer::TimeError;
 
 /// Mrot error variants
@@ -31,6 +28,10 @@ pub enum Error {
     NoParentDirectory,
     /// Timestamp cannot be converted into [chrono::DateTime]
     InvalidTimestamp(i64),
+    /// Wraps [std::num::ParseIntError]
+    StdNum(ParseIntError),
+    /// when [MealRecord] cannot be parsed
+    ParseMealRecordError,
 }
 
 impl fmt::Display for Error {
@@ -54,6 +55,8 @@ impl fmt::Display for Error {
             }
             Error::NoParentDirectory => fmt::Display::fmt("cannot find parent directory", f),
             Error::InvalidTimestamp(i) => fmt::Display::fmt(&format!("invalid timestamp {}", i), f),
+            Error::StdNum(parse_int_error) => fmt::Display::fmt(parse_int_error, f),
+            Error::ParseMealRecordError => fmt::Display::fmt("cannot parse MealRecord", f),
         }
     }
 }
@@ -71,6 +74,8 @@ impl std::error::Error for Error {
             Error::NoDirectory(_) => None,
             Error::NoParentDirectory => None,
             Error::InvalidTimestamp(_) => None,
+            Error::StdNum(ref parse_int_error) => Some(parse_int_error),
+            Error::ParseMealRecordError => None,
         }
     }
 }
@@ -108,5 +113,11 @@ impl From<fmt::Error> for Error {
 impl From<TimeError> for Error {
     fn from(value: TimeError) -> Self {
         Error::TwoTimer(value)
+    }
+}
+
+impl From<ParseIntError> for Error {
+    fn from(value: ParseIntError) -> Self {
+        Error::StdNum(value)
     }
 }

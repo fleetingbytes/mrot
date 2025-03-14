@@ -120,9 +120,8 @@ impl Storage {
         let mut records: Vec<MealRecord> = vec![];
         while let Ok(State::Row) = statement.next() {
             let timestamp = statement.read::<i64, _>("date")?;
-            let date = convert_to_naive_date(timestamp)?;
             let meal = statement.read::<String, _>("meal")?;
-            records.push(MealRecord { meal, date });
+            records.push(MealRecord { meal, timestamp });
         }
         Ok(records)
     }
