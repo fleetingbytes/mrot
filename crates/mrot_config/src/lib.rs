@@ -19,9 +19,7 @@ impl Default for What {
         Self {
             number: 3,
             ignore: Ignore::default(),
-            look_ahead: Some(String::from(
-                "from one day after tomorrow through 11 days after tomorrow",
-            )),
+            look_ahead: Some(String::from("from tomorrow through 11 days after tomorrow")),
         }
     }
 }
