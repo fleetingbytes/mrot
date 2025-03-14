@@ -1,6 +1,8 @@
 //!~Meal Rotator
 //!
-//!
+//! This is a CLI application. It uses [libmrot] and [mrot_config]. See the repository's readme.
+pub(crate) mod cli;
+mod run;
 
 use directories::ProjectDirs;
 use libmrot::{Error, Result};
@@ -38,5 +40,5 @@ fn init_tracing() -> Result<Vec<impl Drop>> {
 
 fn main() -> Result<()> {
     let _guards = init_tracing()?;
-    mrot_cli::run()
+    run::run()
 }
