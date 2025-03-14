@@ -38,5 +38,5 @@ Feature: Suggest Meals
         Then I get the meal records <records>
 
         Examples:
-            | number | ignore_list                                     | look_ahead | records                                  |
-            | 3      | confit de canard, gratin à la M. O., šunkafleky | 2025-03-13 | chineese noodles, chicken, chicken curry |
+            | number | ignore_list                                     | look_ahead | records                                                                      |
+            | 3      | confit de canard, gratin à la M. O., šunkafleky | 2025-03-13 | 1739574000, chineese noodles; 1739574000, chicken; 1739574000, chicken curry |

@@ -1,12 +1,12 @@
 //! Implementation of tests for libmrot
 
 use cucumber::{given, when, then, gherkin::Step};
-use mrot_test_utils::{normal_world as construct_world, World, Result, Error, argument::{NaiveDates, DateString}};
-use libmrot::{Storage, parse_date};
+use mrot_test_utils::{normal_world as construct_world, World, Result, Error, argument::{DateString, Meals, MealRecords}};
+use libmrot::Storage;
 use tracing::debug;
 
 #[given(regex = r"^an in-memory storage with the records$")]
-async fn a_storage(world: &mut World, step: &Step) -> Result<()> {
+async fn a_storage_with_records(world: &mut World, step: &Step) -> Result<()> {
     if let Some(table) = step.table.as_ref() {
         let storage = Storage::open(":memory:")?;
         for row in table.rows.iter().skip(1) {
@@ -20,18 +20,19 @@ async fn a_storage(world: &mut World, step: &Step) -> Result<()> {
     }
     Ok(())
 }
-#[when(regex = "^I parse the date \"(?P<text_date>.*)\"$")]
-async fn parse_the_date(world: &mut World, date: String) -> Result<()> {
-    world.two_timer_parse_result = Some(format!("{:?}", two_timer::parse(&date, None)?));
-    world.parse_result = Some(parse_date(&date));
+#[when(regex = r"^I ask for (?P<number>\d+) meal suggestions, ignoring (?P<ignore_list>.*) and look-ahead (?P<look_ahead>.*)$")]
+async fn ask_for_suggestions(world: &mut World, number: usize, ignore_list: Meals, look_ahead: String) -> Result<()> {
+    let storage = world.storage.as_ref().ok_or(Error::UndefinedValue("storage".to_string()))?;
+    let ignore = ignore_list.to_vec_string();
+    let result = storage.what(number, &ignore, Some(&look_ahead));
+    world.storage_what_result = Some(result);
     Ok(())
 }
 
-#[then(regex = r"^the storage, asked when (?P<meal>.*) was recorded, returns (?P<naive_dates>.*)$")]
-async fn storage_when(world: &mut World, meal: String, expected_naive_dates: NaiveDates) -> Result<()> {
-    let storage = world.storage.as_ref().ok_or(Error::UndefinedValue("storage".to_string()))?;
-    let actual_naive_dates = storage.when(&meal)?;
-    assert_eq!(actual_naive_dates, expected_naive_dates.to_vec_naivedate(), "storage.when returned {:?} but we expected {:?}", actual_naive_dates, expected_naive_dates);
+#[then(regex = r"^I get the meal records (?P<records>.*)$")]
+async fn storage_when(world: &mut World, expected_records: MealRecords) -> Result<()> {
+    let actual_records = world.storage_what_result.as_ref().ok_or(Error::UndefinedValue("storage_what_result".to_string()))?.as_ref().map_err(|e| Error::UnexpectedErrResult(format!("{:?}", e)))?;
+    assert_eq!(*actual_records, expected_records.to_vec_mealrecord(), "storage.what returned {:?} but we expected {:?}", actual_records, expected_records);
     Ok(())
 }
 

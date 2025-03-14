@@ -3,6 +3,7 @@
 
 use crate::Error;
 use chrono::{naive::NaiveDate, DateTime};
+use libmrot::MealRecord;
 use std::{fmt, str::FromStr};
 
 const NAIVE_DATE_PARSE_FROM_STRING_FORMAT: &str = "%Y-%m-%d";
@@ -112,7 +113,9 @@ impl FromStr for DateString {
         let dt = DateTime::from_timestamp(timestamp, 0)
             .ok_or(libmrot::Error::InvalidTimestamp(timestamp))?;
         let naive_date = dt.date_naive();
-        let result_string = naive_date.format("%Y-%m-%d").to_string();
+        let result_string = naive_date
+            .format(NAIVE_DATE_PARSE_FROM_STRING_FORMAT)
+            .to_string();
         Ok(DateString(result_string))
     }
 }
@@ -126,5 +129,33 @@ impl fmt::Debug for DateString {
 impl fmt::Display for DateString {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Default)]
+pub struct MealRecords(Vec<MealRecord>);
+
+impl MealRecords {
+    pub fn to_vec_mealrecord(&self) -> Vec<MealRecord> {
+        self.0
+            .iter()
+            .map(|meal_record| meal_record.clone())
+            .collect()
+    }
+}
+
+impl FromStr for MealRecords {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let meal_records: Result<Vec<MealRecord>, _> =
+            s.split("; ").map(MealRecord::from_str).collect();
+        Ok(meal_records.map(MealRecords)?)
+    }
+}
+
+impl fmt::Debug for MealRecords {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(&self.0).finish()
     }
 }
