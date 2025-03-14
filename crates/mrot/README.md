@@ -29,7 +29,9 @@ Notice how meat balls were not suggested even though you haven't had them for a 
 
 ### Getting Meal Suggestions
 
-When you can run the `what` subcommand, mrot looks through the data you recorded and does the following:
+When you run the `what` subcommand mrot tries to suggest you the meals which you have not consumed for the longest time. However, any meal which you might have already recorded (planned) for tomorrow is suggested first. Also, if a meal from long ago matches a meal planned in the near future (in the eleven days following tomorrow by default), it is not suggested to avoid having the same meal again a few days later (this is assuming you would stick to your plan).
+
+The procedure which mrot runs internally is something like this:
 
 * if you have any meal planned for tomorrow, suggest that
 
@@ -37,13 +39,10 @@ otherwise:
 
 * get a list of unique meals from your records
 * filter out the meals from the ignore list
-* filter out the meals planned for the next few days
+* filter out the meals planned in the look-ahead period (by default from one day after tomorrow through 11 days after tomorrow)
 * look up the last date when each of the remaining meals were cooked and suggest those with the earliest dates
 * limit the number of suggestions according to mrot's configuration or the CLI option
 
-### Ignoring Meals
-
-Mrot's default configuration is to suggest three meals while ignoring any meal that is planned to be cooked in the next five days. You can set the number of these look-ahead days in the configuration (`config look-ahead`) or override it with the `--number` option. Meals you generally would not want to cook in the froseeable future can be put on a separate ignore list (`config ignore`).
 
 ## Feature Ovewiew
 
@@ -68,6 +67,7 @@ In order for you to check whether a certain date expression can be parsed or how
 ### Getting Cooking Suggestions
 
 * `mrot what` will suggest some meals to cook, taking your planned and ignored meals into account
+* `mrot what --look-ahead 4` same as above, but override the configured look-ahead period to be "one day after tomorrow through 4 days after tomorrow"
 * `mrot what --no-look-ahead` same as above, potentially including any meals you may have planned to cook in the near future.
 * `mrot what --ignore liver --ignore salad` same as above, ignoring liver and salad (this supersedes your regular ignore list from your mrot configuration)
 * `mrot what --no-ignore` same as above, not taking the ignore list from your mrot configuration into account
