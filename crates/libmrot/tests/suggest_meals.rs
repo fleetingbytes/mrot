@@ -1,7 +1,7 @@
 //! Implementation of tests for libmrot
 
 use cucumber::{given, when, then, gherkin::Step};
-use mrot_test_utils::{normal_world as construct_world, World, Result, Error, argument::{DateString, Meals, MealRecords}};
+use mrot_test_utils::{normal_world as construct_world, World, Result, Error, argument::{DateString, Meals, MealRecords, NaiveDates}};
 use libmrot::Storage;
 use tracing::debug;
 
@@ -21,10 +21,11 @@ async fn a_storage_with_records(world: &mut World, step: &Step) -> Result<()> {
     Ok(())
 }
 #[when(regex = r"^I ask for (?P<number>\d+) meal suggestions, ignoring (?P<ignore_list>.*) and look-ahead (?P<look_ahead>.*)$")]
-async fn ask_for_suggestions(world: &mut World, number: usize, ignore_list: Meals, look_ahead: String) -> Result<()> {
+async fn ask_for_suggestions(world: &mut World, number: usize, ignore_list: Meals, look_ahead: NaiveDates) -> Result<()> {
     let storage = world.storage.as_ref().ok_or(Error::UndefinedValue("storage".to_string()))?;
     let ignore = ignore_list.to_vec_string();
-    let result = storage.what(number, &ignore, Some(&look_ahead));
+    let look_ahead = look_ahead.to_vec_naivedate();
+    let result = storage.what(number, &ignore, &look_ahead);
     world.storage_what_result = Some(result);
     Ok(())
 }
