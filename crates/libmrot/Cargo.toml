@@ -12,7 +12,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-chrono = { workspace = true }
+chrono = { workspace = true, features = ["alloc"] }
 confy = { workspace = true }
 directories = { workspace = true }
 sqlite = { workspace = true }
@@ -29,5 +29,13 @@ mrot-test-utils = { workspace = true }
 missing_docs = "deny"
 
 [[test]]
-name = "test_libmrot"
+name = "add_when_show"
+harness = false
+
+[[test]]
+name = "parse_date"
+harness = false
+
+[[test]]
+name = "suggest_meals"
 harness = false

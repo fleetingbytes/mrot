@@ -109,7 +109,7 @@ impl Storage {
     /// Show what meals were recorded in the given date range.
     pub fn show(&self, date_range: &str) -> Result<Vec<MealRecord>> {
         let timestamps = convert_to_timestamps(&vec![String::from(date_range)])?;
-        // timestamps are guaranteed to be a vector of at least one element
+        // timestamps are guaranteed to be a vector of at least one element, so we can unwrap
         let start = timestamps.iter().next().unwrap();
         let end = timestamps.iter().last().unwrap();
         let query =
@@ -120,11 +120,23 @@ impl Storage {
         let mut records: Vec<MealRecord> = vec![];
         while let Ok(State::Row) = statement.next() {
             let timestamp = statement.read::<i64, _>("date")?;
-            let date = convert_to_naive_date(timestamp)?;
             let meal = statement.read::<String, _>("meal")?;
-            records.push(MealRecord { meal, date });
+            records.push(MealRecord { meal, timestamp });
         }
         Ok(records)
+    }
+
+    /// Suggest meals to cook. Returns [MealRecord]s of the suggested meals and the last dates when
+    /// they were cooked. Ignores the meals in the *ignore* vector and meals recorded on the dates
+    /// in the look_ahead vector.
+    #[allow(unused_variables)]
+    pub fn what(
+        &self,
+        number: usize,
+        ignore: &Vec<String>,
+        look_ahead: &Vec<NaiveDate>,
+    ) -> Result<Vec<MealRecord>> {
+        todo!();
     }
 }
 

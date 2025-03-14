@@ -2,10 +2,7 @@
 
 use confy::ConfyError;
 use sqlite::Error as SqliteError;
-use std::convert::From;
-use std::ffi::OsString;
-use std::fmt;
-use std::io::Error as IoError;
+use std::{convert::From, ffi::OsString, fmt, io::Error as IoError, num::ParseIntError};
 use two_timer::TimeError;
 
 /// Mrot error variants
@@ -19,15 +16,11 @@ pub enum Error {
     Sqlite(SqliteError),
     /// wraps [std::fmt::Error]
     Fmt(fmt::Error),
-    /// when something could not be stored in the storage
-    Storage,
     /// wraps [two_timer::TimeError]
     TwoTimer(TimeError),
     /// when a [chrono::NaiveDate] cannot be converted to [chrono::NaiveDateTime]
     TimeNotSupported,
-    /// if the user input a time span instead of time
-    TimeSpanNotSupported,
-    /// when OsString does not contain valid Unicode
+    /// when a path contains an invalid Unicode character
     InvalidUnicode(OsString),
     /// when [directories::ProjectDirs] is not found
     NoDirectory(String),
@@ -35,8 +28,10 @@ pub enum Error {
     NoParentDirectory,
     /// Timestamp cannot be converted into [chrono::DateTime]
     InvalidTimestamp(i64),
-    /// A date which is not an explicit range spans a time period longer than one day
-    DateSpansMoreThanOneDay,
+    /// Wraps [std::num::ParseIntError]
+    StdNum(ParseIntError),
+    /// when [MealRecord] cannot be parsed
+    ParseMealRecordError,
 }
 
 impl fmt::Display for Error {
@@ -46,22 +41,22 @@ impl fmt::Display for Error {
             Error::Confy(confy_error) => fmt::Display::fmt(confy_error, f),
             Error::Sqlite(sqlite_error) => fmt::Display::fmt(sqlite_error, f),
             Error::Fmt(fmt_error) => fmt::Display::fmt(fmt_error, f),
-            Error::Storage => fmt::Display::fmt("cannot store values", f),
             Error::TwoTimer(time_error) => fmt::Display::fmt(time_error, f),
             Error::TimeNotSupported => fmt::Display::fmt("such time is not supported", f),
-            Error::TimeSpanNotSupported => fmt::Display::fmt("time spans are not supported", f),
-            Error::InvalidUnicode(os_string) => {
-                fmt::Display::fmt(os_string.to_string_lossy().into_owned().as_str(), f)
-            }
+            Error::InvalidUnicode(os_string) => fmt::Display::fmt(
+                &format!(
+                    "invalid Unicode string: {}",
+                    os_string.to_string_lossy().into_owned().as_str()
+                ),
+                f,
+            ),
             Error::NoDirectory(group) => {
                 fmt::Display::fmt(&format!("cannot find directory for {}", group), f)
             }
             Error::NoParentDirectory => fmt::Display::fmt("cannot find parent directory", f),
             Error::InvalidTimestamp(i) => fmt::Display::fmt(&format!("invalid timestamp {}", i), f),
-            Error::DateSpansMoreThanOneDay => fmt::Display::fmt(
-                "a date which is not an explicit range spans a time period longer than one day",
-                f,
-            ),
+            Error::StdNum(parse_int_error) => fmt::Display::fmt(parse_int_error, f),
+            Error::ParseMealRecordError => fmt::Display::fmt("cannot parse MealRecord", f),
         }
     }
 }
@@ -73,15 +68,14 @@ impl std::error::Error for Error {
             Error::Confy(ref confy_error) => Some(confy_error),
             Error::Sqlite(ref sqlite_error) => Some(sqlite_error),
             Error::Fmt(ref fmt_error) => Some(fmt_error),
-            Error::Storage => None,
             Error::TwoTimer(ref time_error) => Some(time_error),
             Error::TimeNotSupported => None,
-            Error::TimeSpanNotSupported => None,
             Error::InvalidUnicode(_) => None,
             Error::NoDirectory(_) => None,
             Error::NoParentDirectory => None,
             Error::InvalidTimestamp(_) => None,
-            Error::DateSpansMoreThanOneDay => None,
+            Error::StdNum(ref parse_int_error) => Some(parse_int_error),
+            Error::ParseMealRecordError => None,
         }
     }
 }
@@ -119,5 +113,11 @@ impl From<fmt::Error> for Error {
 impl From<TimeError> for Error {
     fn from(value: TimeError) -> Self {
         Error::TwoTimer(value)
+    }
+}
+
+impl From<ParseIntError> for Error {
+    fn from(value: ParseIntError) -> Self {
+        Error::StdNum(value)
     }
 }
