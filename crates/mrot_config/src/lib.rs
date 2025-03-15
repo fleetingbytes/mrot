@@ -32,7 +32,7 @@ pub struct Show {
 impl Default for Show {
     fn default() -> Self {
         Self {
-            range: "from three days before today through tomorrow".to_string(),
+            range: "three days before and after today".to_string(),
         }
     }
 }
