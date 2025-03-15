@@ -1,8 +1,10 @@
 //! CLI for mrot
 
+#[cfg(test)]
+use clap::CommandFactory;
 use clap::{
     ArgAction::{Append, SetTrue},
-    Args, CommandFactory, Parser, Subcommand,
+    Args, Parser, Subcommand,
 };
 
 #[derive(Parser)]
