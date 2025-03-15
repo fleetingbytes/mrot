@@ -1,9 +1,9 @@
-use crate::cli::*;
+use crate::{cli::*, Error, Result};
 use clap::{Command as ClapCommand, CommandFactory, Parser};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
 use directories::ProjectDirs;
-use libmrot::{parse_date as mrot_parse, Error, Result, Storage};
+use libmrot::{parse_date as mrot_parse, Storage};
 use mrot_config::MrotConfig;
 use std::io;
 use tracing::instrument;
