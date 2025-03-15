@@ -7,6 +7,7 @@ mod run;
 
 pub(crate) use crate::error::Error;
 use directories::ProjectDirs;
+use tracing::error;
 use tracing_appender::non_blocking;
 use tracing_subscriber::{filter::EnvFilter, fmt, fmt::format::FmtSpan, prelude::*};
 
@@ -44,5 +45,11 @@ fn init_tracing() -> Result<Vec<impl Drop>> {
 
 fn main() -> Result<()> {
     let _guards = init_tracing()?;
-    run::run()
+    match run::run() {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            error!("{}", e);
+            Err(e)
+        }
+    }
 }

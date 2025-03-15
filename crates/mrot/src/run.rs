@@ -96,8 +96,7 @@ pub fn run() -> Result<()> {
                                 cfg.what.number = config_set_what_number.number;
                             }
                             ConfigSetWhatCommand::LookAhead(config_set_what_look_ahead) => {
-                                // TODO return a proper Error;
-                                assert!(config_set_what_look_ahead.look_ahead > 0, "must be >0");
+                                _ = check_look_ahead_value(config_set_what_look_ahead.look_ahead)?;
                                 cfg.what.look_ahead = config_set_what_look_ahead.look_ahead;
                             }
                         },
@@ -178,7 +177,7 @@ pub fn run() -> Result<()> {
 
 fn open_storage() -> Result<Storage> {
     let storage_path = get_storage_path()?;
-    Storage::open(&storage_path)
+    Ok(Storage::open(&storage_path)?)
 }
 
 fn get_storage_path() -> Result<String> {
@@ -199,4 +198,14 @@ fn print_completions<G: Generator>(generator: G, cmd: &mut ClapCommand) {
         cmd.get_name().to_string(),
         &mut io::stdout(),
     );
+}
+
+fn check_look_ahead_value(value: usize) -> Result<()> {
+    match value {
+        0 => Err(Error::UnsupportedConfigValue(
+            String::from("look-ahead"),
+            String::from("must be greater than 0"),
+        )),
+        _ => Ok(()),
+    }
 }
