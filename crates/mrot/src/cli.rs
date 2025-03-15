@@ -2,7 +2,7 @@
 
 use clap::{
     ArgAction::{Append, SetTrue},
-    Args, Parser, Subcommand,
+    Args, CommandFactory, Parser, Subcommand,
 };
 
 #[derive(Parser)]
