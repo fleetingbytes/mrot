@@ -2,16 +2,21 @@
 //!
 //! This is a CLI application. It uses [libmrot] and [mrot_config]. See the repository's readme.
 pub(crate) mod cli;
+mod error;
 mod run;
 
+pub(crate) use crate::error::Error;
 use directories::ProjectDirs;
-use libmrot::{Error, Result};
+use tracing::error;
 use tracing_appender::non_blocking;
 use tracing_subscriber::{filter::EnvFilter, fmt, fmt::format::FmtSpan, prelude::*};
 
 const LOG_FILE: &str = "trace.log";
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const LOG_LEVEL_ENV_VAR: &str = concat!(env!("PKG_NAME_UPPERCASE"), "_LOG_LEVEL");
+
+/// Type alias for results with libmrot's [Error].
+pub(crate) type Result<T> = std::result::Result<T, Error>;
 
 fn init_tracing() -> Result<Vec<impl Drop>> {
     let (non_blocking_stderr, stderr_guard) = non_blocking(std::io::stderr());
@@ -40,5 +45,11 @@ fn init_tracing() -> Result<Vec<impl Drop>> {
 
 fn main() -> Result<()> {
     let _guards = init_tracing()?;
-    run::run()
+    match run::run() {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            error!("{}", e);
+            Err(e)
+        }
+    }
 }
