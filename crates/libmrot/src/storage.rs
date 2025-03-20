@@ -138,8 +138,8 @@ impl Storage {
         look_ahead: Option<LookAhead>,
         ignore: Vec<String>,
     ) -> Result<Vec<MealRecord>> {
-        let candidates = self.get_meal_candidates(look_ahead, ignore)?;
-        let suggestions = Self::pick_n_meal_records(number, candidates);
+        let mut candidates = self.get_meal_candidates(look_ahead, ignore)?;
+        let suggestions = Self::pick_n_meal_records(number as usize, &mut candidates);
         Ok(suggestions)
     }
 
@@ -148,7 +148,7 @@ impl Storage {
         look_ahead: Option<LookAhead>,
         ignore: Vec<String>,
     ) -> Result<Vec<MealRecord>> {
-        let last_cooked_unique_meals = self.get_last_cooked_unique()?;
+        let mut last_cooked_unique_meals = self.get_last_cooked_unique()?;
         let planned_meal_records = match look_ahead {
             None => Vec::new(),
             Some(period) => self.get_meal_records_between_dates(
@@ -162,24 +162,44 @@ impl Storage {
             .collect();
         ignored_meals.sort();
         ignored_meals.dedup();
-        let candidates = Self::filter_meal_records(last_cooked_unique_meals, ignored_meals);
-        Ok(candidates)
+        Self::filter_meal_records(&mut last_cooked_unique_meals, &ignored_meals);
+        Ok(last_cooked_unique_meals)
     }
 
-    fn get_meal_records_between_dates(&self, _start: i64, _end: i64) -> Result<Vec<MealRecord>> {
-        todo!();
+    fn get_meal_records_between_dates(&self, start: i64, end: i64) -> Result<Vec<MealRecord>> {
+        let query =
+            "SELECT date, meal FROM meals WHERE date >= :start AND date <= :end ORDER BY date ASC";
+        let mut statement = self.connection.prepare(query)?;
+        statement
+            .bind_iter::<_, (_, Value)>([(":start", (start).into()), (":end", (end).into())])?;
+        let mut records = Vec::new();
+        while let Ok(State::Row) = statement.next() {
+            let timestamp = statement.read::<i64, _>("date")?;
+            let meal = statement.read::<String, _>("meal")?;
+            records.push(MealRecord { meal, timestamp });
+        }
+        Ok(records)
     }
 
     fn get_last_cooked_unique(&self) -> Result<Vec<MealRecord>> {
-        todo!();
+        let query = "SELECT meal, MAX(date) AS date FROM meals GROUP BY meal";
+        let mut statement = self.connection.prepare(query)?;
+        let mut records = Vec::new();
+        while let Ok(State::Row) = statement.next() {
+            let timestamp = statement.read::<i64, _>("date")?;
+            let meal = statement.read::<String, _>("meal")?;
+            records.push(MealRecord { meal, timestamp });
+        }
+        Ok(records)
     }
 
-    fn filter_meal_records(_records: Vec<MealRecord>, _ignore: Vec<String>) -> Vec<MealRecord> {
-        todo!();
+    fn filter_meal_records(records: &mut Vec<MealRecord>, ignore: &Vec<String>) -> () {
+        records.retain(|r| !ignore.contains(&r.meal));
     }
 
-    fn pick_n_meal_records(_number: u64, _candidates: Vec<MealRecord>) -> Vec<MealRecord> {
-        todo!();
+    fn pick_n_meal_records(number: usize, candidates: &mut Vec<MealRecord>) -> Vec<MealRecord> {
+        _ = candidates.split_off(number);
+        candidates.drain(..).collect()
     }
 }
 

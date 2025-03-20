@@ -39,4 +39,4 @@ Feature: Suggest Meals
 
         Examples:
             | number | ignore_list                                     | look_ahead | records                                                                      |
-            | 3      | confit de canard, gratin à la M. O., šunkafleky | 2025-03-13 | 1739574000, chineese noodles; 1739574000, chicken; 1739574000, chicken curry |
+            | 3      | confit de canard, gratin à la M. O., šunkafleky | 2025-03-13 | 1739660400, chineese noodles; 1739833200, chicken; 1740006000, chicken curry |
