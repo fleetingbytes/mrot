@@ -14,10 +14,6 @@ pub(crate) enum Error {
     LibMrot(LibMrotError),
     /// A path contains an invalid Unicode character
     InvalidUnicode(OsString),
-    /// When you try to set a value in the mrot config which is not allowed to be set. (`mrot
-    /// config set look-ahead 0` would be such an example, for this setting only makes sense for
-    /// values greater than 0).
-    UnsupportedConfigValue(String, String),
     /// No suitable path for project directory could be found, see [directories::ProjectDirs]
     NoDirectory(String),
 }
@@ -35,13 +31,6 @@ impl fmt::Display for Error {
                 ),
                 f,
             ),
-            Error::UnsupportedConfigValue(config_field, reason) => fmt::Display::fmt(
-                &format!(
-                    "unsupported configuration value for {}, reason: {}",
-                    config_field, reason
-                ),
-                f,
-            ),
             Error::NoDirectory(group) => {
                 fmt::Display::fmt(&format!("cannot find directory for {}", group), f)
             }
@@ -56,7 +45,6 @@ impl std::error::Error for Error {
             Error::Confy(ref confy_error) => Some(confy_error),
             Error::LibMrot(ref libmrot_error) => Some(libmrot_error),
             Error::InvalidUnicode(_) => None,
-            Error::UnsupportedConfigValue(_, _) => None,
             Error::NoDirectory(_) => None,
         }
     }
