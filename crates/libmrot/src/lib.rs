@@ -22,6 +22,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Holds data related to the look-ahead period in which to search for meals which the user
 /// explicitly planned so that they can be excluded from meal suggestions.
 /// See section [Getting Meal Suggestions](https://github.com/fleetingbytes/mrot/#getting-meal-suggestions) in the mrot readme.
+///
+/// In the libmrot API [LookAhead] is always used behind an [Option], i.e. `Option<LookAhead>`,
+/// where [None] signals "no look-ahead" at all.
 #[derive(Debug, Clone)]
 pub struct LookAhead {
     first_day_timestamp: i64,
@@ -31,7 +34,7 @@ pub struct LookAhead {
 }
 
 impl LookAhead {
-    /// Construct a new `LookAhead`. If *date* is the `Some` variant, it should contain a parsable date expression
+    /// Construct a new `Option<LookAhead>`. If *date* is the `Some` variant, it should contain a parsable date expression
     /// (cf. [parse_date]).
     ///
     /// Examples of successfully constructed LookAheads:
@@ -53,8 +56,9 @@ impl LookAhead {
     /// ```
     /// use libmrot::{Error, LookAhead};
     ///
-    /// let unparsable_date = LookAhead::new(Some(String::new())).unwrap_err();
-    /// assert!(matches!(unparsable_date, Error::TwoTimer(_)));
+    /// let unparsable_date_string = "Christmas Eve 2025".to_string();
+    /// let error_result = LookAhead::new(Some(unparsable_date_string)).unwrap_err();
+    /// assert!(matches!(error_result, Error::TwoTimer(_)));
     /// ```
     pub fn new(date: Option<String>) -> Result<Option<Self>> {
         match date {
