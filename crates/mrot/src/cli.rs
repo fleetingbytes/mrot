@@ -36,6 +36,9 @@ pub(crate) enum Command {
     Generate(GenerateCommand),
     /// Parse date
     ParseDate(ParseDateArgs),
+    /// Show paths to data files
+    #[command(subcommand)]
+    Path(PathCommand),
 }
 
 #[derive(Args)]
@@ -51,14 +54,14 @@ pub(crate) struct AddArgs {
 pub(crate) struct WhatArgs {
     /// Limit to a number of suggestions (overrides config)
     #[arg(short, long)]
-    pub(crate) number: Option<usize>,
+    pub(crate) number: Option<u64>,
     /// Ignore a certain meal (can use multiple times, overrides config)
     #[arg(short, long, action = Append)]
     pub(crate) ignore: Option<Vec<String>>,
     /// Ignore meals planned in this time span
     #[arg(short, long)]
-    pub(crate) look_ahead: Option<usize>,
-    /// Include ignored meals
+    pub(crate) look_ahead: Option<String>,
+    /// Consider also ignored meals
     #[arg(short = 'I', long, action = SetTrue, conflicts_with = "ignore")]
     pub(crate) no_ignore: bool,
     /// Disregard planned meals
@@ -107,8 +110,6 @@ pub(crate) enum ConfigCommand {
     /// Manage the ignored meals list
     #[command(subcommand)]
     Ignore(ConfigIgnoreCommand),
-    /// Show the path to the configuration file
-    Path(ConfigPathArgs),
 }
 
 #[derive(Subcommand)]
@@ -131,13 +132,14 @@ pub(crate) enum ConfigSetWhatCommand {
 #[derive(Args)]
 pub(crate) struct ConfigSetWhatNumberArgs {
     /// Max number of meals to suggest
-    pub(crate) number: usize,
+    pub(crate) number: u64,
 }
 
 #[derive(Args)]
 pub(crate) struct ConfigSetWhatLookAheadArgs {
-    /// Number of days after tomorrow to look-ahead for planned meals
-    pub(crate) look_ahead: usize,
+    /// Optional string with a date expression describing the date or date range for look-ahead.
+    /// Enter no string at all (not even an empty string) to configure no look-ahead.
+    pub(crate) look_ahead: Option<String>,
 }
 
 #[derive(Args)]
@@ -159,7 +161,7 @@ pub(crate) enum ConfigGetCommand {
 pub(crate) enum ConfigGetWhatCommand {
     /// Max number of meals to suggest
     Number(ConfigGetWhatNumberArgs),
-    /// Days to look-ahead for planned meals
+    /// Days to look ahead for planned meals
     LookAhead(ConfigGetWhatLookAheadArgs),
 }
 
@@ -202,9 +204,6 @@ pub(crate) struct ConfigIgnoreShowArgs;
 #[derive(Args)]
 pub(crate) struct ConfigIgnoreClearArgs;
 
-#[derive(Args)]
-pub(crate) struct ConfigPathArgs;
-
 #[derive(Subcommand)]
 pub(crate) enum GenerateCommand {
     /// generate completion file for Bash
@@ -238,6 +237,25 @@ pub(crate) struct GeneratePowerShellArgs;
 
 #[derive(Args)]
 pub(crate) struct GenerateZshArgs;
+
+#[derive(Subcommand)]
+pub(crate) enum PathCommand {
+    /// Show path to the configuration file
+    Config(PathConfigArgs),
+    /// Show path to the records file
+    Records(PathRecordsArgs),
+    /// Show path to the log file
+    Log(PathLogArgs),
+}
+
+#[derive(Args)]
+pub(crate) struct PathConfigArgs;
+
+#[derive(Args)]
+pub(crate) struct PathRecordsArgs;
+
+#[derive(Args)]
+pub(crate) struct PathLogArgs;
 
 #[test]
 fn verify_cli() {
