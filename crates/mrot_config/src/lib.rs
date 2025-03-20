@@ -9,9 +9,9 @@ pub struct MrotConfig {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct What {
-    pub number: usize,
+    pub number: u64,
     pub ignore: Ignore,
-    pub look_ahead: usize,
+    pub look_ahead: Option<String>,
 }
 
 impl Default for What {
@@ -19,7 +19,7 @@ impl Default for What {
         Self {
             number: 3,
             ignore: Ignore::default(),
-            look_ahead: 11,
+            look_ahead: Some(String::from("from tomorrow through 11 days after tomorrow")),
         }
     }
 }

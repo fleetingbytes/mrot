@@ -1,8 +1,10 @@
 //! Storage for meal records
 
-use crate::convert::{convert_to_naive_date, convert_to_timestamps};
-use crate::error::Error;
-use crate::{MealRecord, Result};
+use crate::{
+    convert::{convert_to_naive_date, convert_to_timestamps},
+    error::Error,
+    LookAhead, MealRecord, Result,
+};
 use chrono::naive::NaiveDate;
 use sqlite::{Connection, State, Value};
 use std::{fmt, path::Path};
@@ -107,6 +109,7 @@ impl Storage {
     }
 
     /// Show what meals were recorded in the given date range.
+    #[instrument]
     pub fn show(&self, date_range: &str) -> Result<Vec<MealRecord>> {
         let timestamps = convert_to_timestamps(&vec![String::from(date_range)])?;
         // timestamps are guaranteed to be a vector of at least one element, so we can unwrap
@@ -117,7 +120,7 @@ impl Storage {
         let mut statement = self.connection.prepare(query)?;
         statement
             .bind_iter::<_, (_, Value)>([(":start", (*start).into()), (":end", (*end).into())])?;
-        let mut records: Vec<MealRecord> = vec![];
+        let mut records = Vec::new();
         while let Ok(State::Row) = statement.next() {
             let timestamp = statement.read::<i64, _>("date")?;
             let meal = statement.read::<String, _>("meal")?;
@@ -129,13 +132,53 @@ impl Storage {
     /// Suggest meals to cook. Returns [MealRecord]s of the suggested meals and the last dates when
     /// they were cooked. Ignores the meals in the *ignore* vector and meals recorded on the dates
     /// in the look_ahead vector.
-    #[allow(unused_variables)]
     pub fn what(
         &self,
-        number: usize,
-        ignore: &Vec<String>,
-        look_ahead: &Vec<NaiveDate>,
+        number: u64,
+        look_ahead: Option<LookAhead>,
+        ignore: Vec<String>,
     ) -> Result<Vec<MealRecord>> {
+        let candidates = self.get_meal_candidates(look_ahead, ignore)?;
+        let suggestions = Self::pick_n_meal_records(number, candidates);
+        Ok(suggestions)
+    }
+
+    fn get_meal_candidates(
+        &self,
+        look_ahead: Option<LookAhead>,
+        ignore: Vec<String>,
+    ) -> Result<Vec<MealRecord>> {
+        let last_cooked_unique_meals = self.get_last_cooked_unique()?;
+        let planned_meal_records = match look_ahead {
+            None => Vec::new(),
+            Some(period) => self.get_meal_records_between_dates(
+                period.first_day_timestamp(),
+                period.last_day_timestamp(),
+            )?,
+        };
+        let mut ignored_meals: Vec<_> = ignore
+            .into_iter()
+            .chain(planned_meal_records.into_iter().map(|record| record.meal))
+            .collect();
+        ignored_meals.sort();
+        ignored_meals.dedup();
+        let candidates = Self::filter_meal_records(last_cooked_unique_meals, ignored_meals);
+        Ok(candidates)
+    }
+
+    fn get_meal_records_between_dates(&self, _start: i64, _end: i64) -> Result<Vec<MealRecord>> {
+        todo!();
+    }
+
+    fn get_last_cooked_unique(&self) -> Result<Vec<MealRecord>> {
+        todo!();
+    }
+
+    fn filter_meal_records(_records: Vec<MealRecord>, _ignore: Vec<String>) -> Vec<MealRecord> {
+        todo!();
+    }
+
+    fn pick_n_meal_records(_number: u64, _candidates: Vec<MealRecord>) -> Vec<MealRecord> {
         todo!();
     }
 }

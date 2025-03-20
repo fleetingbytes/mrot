@@ -11,8 +11,8 @@ use tracing::error;
 use tracing_appender::non_blocking;
 use tracing_subscriber::{filter::EnvFilter, fmt, fmt::format::FmtSpan, prelude::*};
 
-const LOG_FILE: &str = "trace.log";
-const PKG_NAME: &str = env!("CARGO_PKG_NAME");
+pub(crate) const LOG_FILE: &str = "trace.log";
+pub(crate) const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const LOG_LEVEL_ENV_VAR: &str = concat!(env!("PKG_NAME_UPPERCASE"), "_LOG_LEVEL");
 
 /// Type alias for results with libmrot's [Error].

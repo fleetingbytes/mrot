@@ -7,21 +7,21 @@ use two_timer::TimeError;
 /// Mrot error variants
 #[derive(Debug)]
 pub enum Error {
-    /// Wraps [std::num::ParseIntError]
+    /// Wraps [`std::num::ParseIntError`]
     StdNum(ParseIntError),
-    /// wraps [std::io::Error]
+    /// Wraps [`std::io::Error`]
     Io(IoError),
-    /// wraps [sqlite::Error]
+    /// Wraps [`sqlite::Error`]
     Sqlite(SqliteError),
-    /// wraps [two_timer::TimeError]
+    /// Wraps [`two_timer::TimeError`]
     TwoTimer(TimeError),
-    /// when a [chrono::NaiveDate] cannot be converted to [chrono::NaiveDateTime]
+    /// A [`chrono::NaiveDate`] cannot be converted to [`chrono::NaiveDateTime`]
     TimeNotSupported,
-    /// when a path does not have a parent directory
+    /// A path does not have a parent directory
     NoParentDirectory,
-    /// Timestamp cannot be converted into [chrono::DateTime]
+    /// Timestamp cannot be converted into [`chrono::DateTime`]
     InvalidTimestamp(i64),
-    /// when [MealRecord] cannot be parsed
+    /// [`crate::MealRecord`] cannot be parsed
     ParseMealRecordError,
 }
 
