@@ -7,7 +7,7 @@ use crate::{
 };
 use chrono::naive::NaiveDate;
 use sqlite::{Connection, State, Value};
-use std::{fmt, path::Path};
+use std::{cmp::min, fmt, path::Path};
 use tracing::{instrument, trace};
 
 /// Storage for meal data.
@@ -206,7 +206,7 @@ impl Storage {
 
     #[instrument(level = "debug")]
     fn pick_n_meal_records(number: usize, candidates: &mut Vec<MealRecord>) -> Vec<MealRecord> {
-        _ = candidates.split_off(number);
+        _ = candidates.split_off(min(number, candidates.len()));
         candidates.drain(..).collect()
     }
 }

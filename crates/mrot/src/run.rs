@@ -6,7 +6,7 @@ use directories::ProjectDirs;
 use libmrot::{convert_to_timestamps, parse_date as mrot_parse, LookAhead, Storage};
 use mrot_config::MrotConfig;
 use std::io;
-use tracing::instrument;
+use tracing::{debug, instrument};
 
 const APP_NAME: &str = PKG_NAME;
 const CONFIG_FILE_NAME: &str = "config";
@@ -29,16 +29,16 @@ pub fn run() -> Result<()> {
 
         Command::What(what) => {
             if let Some(ref number) = what.number {
-                println!("what number is {}", number);
+                debug!("what number is {}", number);
             }
-            println!("configured number is {}", cfg.what.number);
+            debug!("configured number is {}", cfg.what.number);
             let number = what.number.unwrap_or(cfg.what.number);
-            println!("resulting number is {}", number);
+            debug!("resulting number is {}", number);
             if let Some(ref ignore) = what.ignore {
-                println!("what ignore is {:?}", ignore);
+                debug!("what ignore is {:?}", ignore);
             }
-            println!("what no_ignore is {}", what.no_ignore);
-            println!("configured ignore list is {:?}", cfg.what.ignore);
+            debug!("what no_ignore is {}", what.no_ignore);
+            debug!("configured ignore list is {:?}", cfg.what.ignore);
             let ignore_list: Vec<String> = if what.no_ignore {
                 Vec::new()
             } else {
@@ -47,10 +47,10 @@ pub fn run() -> Result<()> {
                     Some(ref vec) => vec.clone(),
                 }
             };
-            println!("resulting ignore list is {:?}", ignore_list);
-            println!("what no_look_ahead is {}", what.no_look_ahead);
-            println!("what look_ahead is {:?}", what.look_ahead);
-            println!("configured look_ahead is {:?}", cfg.what.look_ahead);
+            debug!("resulting ignore list is {:?}", ignore_list);
+            debug!("what no_look_ahead is {}", what.no_look_ahead);
+            debug!("what look_ahead is {:?}", what.look_ahead);
+            debug!("configured look_ahead is {:?}", cfg.what.look_ahead);
             let option_look_ahead: Option<LookAhead> = match what.no_look_ahead {
                 // user explicitly used --no-look-ahead, overriding the Option<String> from the
                 // config with None.
@@ -75,11 +75,12 @@ pub fn run() -> Result<()> {
                     Some(ref date) => LookAhead::new(Some(date.clone()))?,
                 },
             };
-            println!("resulting look-ahead is {:?}", option_look_ahead);
-            println!("storage::what is run");
+            debug!("resulting look-ahead is {:?}", option_look_ahead);
+            debug!("storage::what is run");
             let storage = open_storage()?;
             let meals = storage.what(number, option_look_ahead, ignore_list)?;
-            println!("{:?}", meals);
+            debug!("{:?}", meals);
+            meals.into_iter().for_each(|meal| println!("{}", meal));
         }
 
         Command::Show(show) => {

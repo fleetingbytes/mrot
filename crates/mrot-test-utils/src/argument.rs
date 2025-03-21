@@ -148,6 +148,9 @@ impl FromStr for MealRecords {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s == "" {
+            return Ok(MealRecords::default());
+        }
         let meal_records: Result<Vec<MealRecord>, _> =
             s.split("; ").map(MealRecord::from_str).collect();
         Ok(meal_records.map(MealRecords)?)

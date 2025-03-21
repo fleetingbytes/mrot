@@ -1,5 +1,5 @@
-use crate::Error;
-use std::str::FromStr;
+use crate::{convert::convert_to_naive_date, Error};
+use std::{fmt, str::FromStr};
 
 /// Container for a meal and a date on which it was recorded.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -21,5 +21,12 @@ impl FromStr for MealRecord {
             .parse::<i64>()?;
         let meal = String::from(split.next().ok_or(Error::ParseMealRecordError)?);
         Ok(MealRecord { meal, timestamp })
+    }
+}
+
+impl fmt::Display for MealRecord {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let naive_date = convert_to_naive_date(self.timestamp).expect("cannot format meal record");
+        write!(f, "{} ({})", self.meal, naive_date)
     }
 }
