@@ -30,7 +30,7 @@ steak
 
 Notice how *meat balls* were not suggested even though you haven't had them for a longer time than a pizza or a steak. That is because you already planned them in the near future.
 
-The dates you record in mrot should primarily be thought of as the day on which the respective meal was consumed. In reality the day of cooking and actually consuming the meal often don't coincide but for the purpose of deciding what to cook next we can simply assume that they do.
+The dates you record in mrot should primarily be thought of as the day on which the respective meal was consumed. In reality the day of cooking and actually consuming the meal often don't coincide but for the purpose of deciding what to cook next mrot simply assumes that they do.
 
 ### Getting Meal Suggestions
 
@@ -38,18 +38,18 @@ When you run the `what` subcommand mrot tries to suggest you the meals which you
 
 The procedure which mrot runs internally is something like this:
 
-* for each unique meal, look up the date when it was last consumed
+* for each unique recorded meal, look up the date when it was last consumed
 * filter out the meals which are on the ignore list
-* filter out the planned meals which are in the look-ahead period
-* limit the number of suggestions according to mrot's configuration or the CLI option
+* filter out the meals which are planned and recorded in advance within the look-ahead period
+* limit the number of suggestions according to your configuration or the CLI option
 
 ## Feature Ovewiew
 
 ### Record or Plan Meals
 
-* `mrot add spaghetti` records that you've had spaghetti today
+* `mrot add spaghetti` records that you've had spaghetti today ("today" is the default date for the add subcommand)
 * `mrot add pizza --date yesterday` records that you've had a pizza yesterday
-* `mrot add steak --date 2024-02-10 --date "next Saturday through Sunday"` records that you've had a steak on February 10th 2024 and that you plan it for the next Saturday and Sunday"
+* `mrot add steak --date 2024-02-10 --date "next Saturday through Sunday"` records that you've had a steak on February 10th 2024 and that you plan it for the next Saturday and Sunday
 * `mrot add carp --date "this Monday to Wednesday"` records that you had carp this Monday and Tuesday (*sic!*, the date range `X to Y` excludes `Y`).
 
 ### Parsing Date Expressions
@@ -63,6 +63,15 @@ In order for you to check whether a certain date expression can be parsed or how
 * `mrot parse-date "from yesterday until today"`
 * `mrot parse-date "from yesterday through today"`
 * `mrot parse-date "one day before and after today"` (This actually includes tomorrow, unlike two_timer's parse result.)
+
+#### Output Dates as Unix Timestamps
+
+A more developer-oriented option allows to output the parsed dates as Unix timestamps
+
+```sh
+$ mrot parse-date --output-timestamp "last week"
+[]
+```
 
 ### Getting Cooking Suggestions
 
@@ -98,6 +107,11 @@ In order for you to check whether a certain date expression can be parsed or how
 * `mrot remove "from last week to next week"` will remove all meals in the specified time range
 * `mrot remove "from last month to the end of this month" --meal "tomato soup"` will remove the specified meal in the specified time range
 
+### Renaming Meals
+
+* `mrot rename "spaghetti" "spaghetti bolognese"` will rename all records of *spaghetti* to *spaghetti bolognese*
+* `mrot rename "spaghetti bolognese" "spaghetti alla carbonara" --date "two weeks ago through today"` will rename records of *spaghetti bolognese* to *spaghetti alla carbonara* if their date happens to be in the period from *two weeks ago through today*
+
 ### Configuring Mrot
 
 * `mrot config set what number 5` will configure mrot to suggest five oldest meals (default: 3)
@@ -110,6 +124,10 @@ In order for you to check whether a certain date expression can be parsed or how
 * `mrot config ignore remove salad` will remove salad from the ignore list
 * `mrot config ignore show` will list the ignored meals
 * `mrot config ignore clear` will remove everything from the ignore list
+
+#### Restoring Default Configuration
+
+* `mrot config reset-to-default` will overwrite your mrot configuration with a default one
 
 ### Show Paths to Mrot's Data Files
 
@@ -125,7 +143,7 @@ In order for you to check whether a certain date expression can be parsed or how
 
 ### Handling of More Than One Meal Per Day
 
-Mrot is intended to record only the prime meal of the day (lunch). This is because in my family the breakfasts and dinners are routinely the same and change only occasionally. You can record or plan multiple meals on a single day, but they are all equivalent. Mrot will not distinguish if a meal was a breakfast, lunch, or dinner. In queries which limit the number of meals shown, e.g. `mrot plan show --number 3`, such meals on the same are of equal importance because mrot ranks the meals by the date. Both would outrank younger records. If in the composition of a listing of meals there are less slots left than there are equally ranked (equally dated) candidates, meals of the same date could outrank each other unpredictably.
+Mrot is intended to record only the prime meal of the day (lunch). This is because in my family the breakfasts and dinners are routinely the same and change only occasionally. You can record or plan multiple meals on a single day, but they are all equivalent. Mrot will not distinguish if a meal was a breakfast, lunch, or dinner. In queries which limit the number of meals shown, e.g. `mrot show --number 3`, meals on the same date are of equal importance because mrot ranks the meals by their date. Both would outrank younger records. If in the composition of a listing of meals there are less slots left than there are equally ranked (equally dated) candidates, meals of the same date could outrank each other unpredictably.
 
 [two-timer]: https://docs.rs/two_timer/latest/two_timer/
 [feature-file]: https://github.com/fleetingbytes/mrot/tree/master/crates/libmrot/tests/features/parse_date.feature

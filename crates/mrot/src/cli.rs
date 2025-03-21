@@ -97,6 +97,9 @@ pub(crate) struct RandomArgs;
 pub(crate) struct ParseDateArgs {
     /// Date string to parse
     pub(crate) date: String,
+    /// Output dates as Unix timestamps
+    #[arg(short = 't', long, action = SetTrue)]
+    pub(crate) output_timestamp: bool,
 }
 
 #[derive(Subcommand)]

@@ -68,10 +68,12 @@ fn remove_last_date(vec: &mut Vec<NaiveDate>) {
     _ = vec.pop();
 }
 
+/// Same as [parse_date] but with a different output type.
+///
 /// Convert human-readable dates to timestamps. The result vector is guaranteed to contain
 /// at least one timestamp per string in the input vector.
 #[instrument]
-pub(crate) fn convert_to_timestamps(dates: &Vec<String>) -> Result<Vec<i64>> {
+pub fn convert_to_timestamps(dates: &Vec<String>) -> Result<Vec<i64>> {
     dates
         .iter()
         .map(|date| {
