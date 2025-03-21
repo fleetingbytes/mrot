@@ -32,11 +32,11 @@ Feature: Suggest Meals
             | 1739577600 | chineese noodles   |
             | 1739491200 | šunkafleky         |
             | 1739404800 | šunkafleky         |
-            | 1739318400 | gratin à la M. O.  |
-            | 1739232000 | gratin à la M. O.  |
+            | 1739318400 | gratin à la m. o.  |
+            | 1739232000 | gratin à la m. o.  |
         When I ask for <number> meal suggestions, ignoring <ignore_list> and look-ahead <look_ahead>
         Then I get the meal records <records>
 
         Examples:
             | number | ignore_list                                     | look_ahead | records                                                                      |
-            | 3      | confit de canard, gratin à la M. O., šunkafleky | 2025-03-13 | 1739664000, chineese noodles; 1739836800, chicken; 1740009600, chicken curry |
+            | 3      | confit de canard, gratin à la m. o., šunkafleky | 2025-03-13 | 1739664000, chineese noodles; 1739836800, chicken; 1740009600, chicken curry |
