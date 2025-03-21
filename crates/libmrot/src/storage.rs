@@ -132,6 +132,7 @@ impl Storage {
     /// Suggest meals to cook. Returns [MealRecord]s of the suggested meals and the last dates when
     /// they were cooked. Ignores the meals in the *ignore* vector and meals recorded on the dates
     /// in the look_ahead vector.
+    #[instrument]
     pub fn what(
         &self,
         number: u64,
@@ -143,6 +144,7 @@ impl Storage {
         Ok(suggestions)
     }
 
+    #[instrument(level = "debug")]
     fn get_meal_candidates(
         &self,
         look_ahead: Option<LookAhead>,
@@ -166,6 +168,7 @@ impl Storage {
         Ok(last_cooked_unique_meals)
     }
 
+    #[instrument(level = "trace")]
     fn get_meal_records_between_dates(&self, start: i64, end: i64) -> Result<Vec<MealRecord>> {
         let query =
             "SELECT date, meal FROM meals WHERE date >= :start AND date <= :end ORDER BY date ASC";
@@ -181,8 +184,11 @@ impl Storage {
         Ok(records)
     }
 
+    #[instrument(level = "trace")]
+    /// Outputs [MealRecord]s with unique meals and their last dates. The result vector is sorted
+    /// by date
     fn get_last_cooked_unique(&self) -> Result<Vec<MealRecord>> {
-        let query = "SELECT meal, MAX(date) AS date FROM meals GROUP BY meal";
+        let query = "SELECT meal, MAX(date) AS date FROM meals GROUP BY meal ORDER BY date ASC";
         let mut statement = self.connection.prepare(query)?;
         let mut records = Vec::new();
         while let Ok(State::Row) = statement.next() {
@@ -193,10 +199,12 @@ impl Storage {
         Ok(records)
     }
 
+    #[instrument(level = "trace")]
     fn filter_meal_records(records: &mut Vec<MealRecord>, ignore: &Vec<String>) -> () {
         records.retain(|r| !ignore.contains(&r.meal));
     }
 
+    #[instrument(level = "debug")]
     fn pick_n_meal_records(number: usize, candidates: &mut Vec<MealRecord>) -> Vec<MealRecord> {
         _ = candidates.split_off(number);
         candidates.drain(..).collect()
