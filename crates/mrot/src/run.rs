@@ -3,7 +3,7 @@ use clap::{Command as ClapCommand, CommandFactory, Parser};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
 use directories::ProjectDirs;
-use libmrot::{parse_date as mrot_parse, LookAhead, Storage};
+use libmrot::{convert_to_timestamps, parse_date as mrot_parse, LookAhead, Storage};
 use mrot_config::MrotConfig;
 use std::io;
 use tracing::instrument;
@@ -190,8 +190,17 @@ pub fn run() -> Result<()> {
 
         Command::ParseDate(parse_date) => {
             let date = &parse_date.date;
-            let mrot_dates = mrot_parse(&date)?;
-            println!("{:?}", mrot_dates);
+            match &parse_date.output_timestamp {
+                false => {
+                    let mrot_dates = mrot_parse(&date)?;
+                    println!("{:?}", mrot_dates);
+                }
+                true => {
+                    let date_vec = vec![String::from(date)];
+                    let converted_dates: Vec<i64> = convert_to_timestamps(&date_vec)?;
+                    println!("{:?}", converted_dates);
+                }
+            };
         }
 
         Command::Path(path) => match path {

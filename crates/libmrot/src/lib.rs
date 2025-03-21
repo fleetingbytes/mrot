@@ -11,7 +11,7 @@ mod storage;
 
 use crate::convert::convert_date_to_timestamp;
 use chrono::NaiveDate;
-pub use convert::parse_date;
+pub use convert::{convert_to_timestamps, parse_date};
 pub use error::Error;
 pub use meal_record::MealRecord;
 pub use storage::Storage;

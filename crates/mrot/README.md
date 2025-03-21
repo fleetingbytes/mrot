@@ -64,6 +64,15 @@ In order for you to check whether a certain date expression can be parsed or how
 * `mrot parse-date "from yesterday through today"`
 * `mrot parse-date "one day before and after today"` (This actually includes tomorrow, unlike two_timer's parse result.)
 
+#### Output Dates as Unix Timestamps
+
+A more developer-oriented option allows to output the parsed dates as Unix timestamps
+
+```sh
+$ mrot parse-date --output-timestamp "last week"
+[]
+```
+
 ### Getting Cooking Suggestions
 
 * `mrot what` will suggest some meals to cook, taking your past, planned and ignored meals into account
