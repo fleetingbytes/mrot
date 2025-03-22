@@ -5,12 +5,13 @@ use chrono::{DateTime, Days, NaiveDate, NaiveDateTime, TimeDelta};
 use tracing::{instrument, Span};
 
 /// Parses a given string into a vector of naive dates.
-/// Implicit or explicit time ranges (see [literal range][two-timer]) may result in multiple dates,
+/// Implicit or explicit time ranges (see two_timer's [literal range](https://docs.rs/two_timer/latest/two_timer/)) may result in multiple dates,
 /// if the range is longer than one full day.
 /// See the [parse date feature file](https://github.com/fleetingbytes/mrot/tree/master/crates/libmrot/tests/features/parse_date.feature)
 /// for detailed examples.
 ///
 /// The Result is guaranteed to contain at least one NaiveDate.
+/// [two-timer]:
 #[instrument]
 pub fn parse_date(date: &str) -> Result<Vec<NaiveDate>> {
     let (start_datetime, end_datetime, range_is_explicit) = two_timer::parse(date, None)?;

@@ -74,6 +74,22 @@ impl Storage {
     }
 
     /// Adds a meal on the given dates to the storage.
+    ///
+    /// Example:
+    /// ```
+    /// use libmrot::Storage;
+    ///
+    /// // open in-memory storage
+    /// let storage = Storage::open(":memory:").unwrap();
+    ///
+    /// // prepare dates where each meal was consumed
+    /// let bolognese_dates = vec![String::from("from yesterday through today")];
+    /// let rib_eye_steak_dates = vec![String::from("this Sunday"), String::from("2025-03-13 through 2025-03-14")];
+    ///
+    /// // store the data in the storage
+    /// storage.add_meal_on_dates("bolognese", &bolognese_dates).unwrap();
+    /// storage.add_meal_on_dates("rib eye steak", &rib_eye_steak_dates).unwrap();
+    /// ```
     #[instrument]
     pub fn add_meal_on_dates(&self, meal: &str, dates: &Vec<String>) -> Result<()> {
         let converted_dates = convert_to_timestamps(dates)?;
@@ -94,45 +110,40 @@ impl Storage {
         Ok(())
     }
 
-    /// Show on what dates a meal was recorded.
-    #[instrument]
-    pub fn when(&self, meal: &str) -> Result<Vec<NaiveDate>> {
-        let query = "SELECT date FROM meals WHERE meal = :meal ORDER BY date ASC";
-        let mut statement = self.connection.prepare(query)?;
-        statement.bind((":meal", meal))?;
-        let mut naive_dates: Vec<NaiveDate> = vec![];
-        while let Ok(State::Row) = statement.next() {
-            let timestamp = statement.read::<i64, _>("date")?;
-            let naive_date = convert_to_naive_date(timestamp)?;
-            naive_dates.push(naive_date);
-        }
-        Ok(naive_dates)
-    }
-
-    /// Show what meals were recorded in the given date range.
-    #[instrument]
-    pub fn show(&self, date_range: &str) -> Result<Vec<MealRecord>> {
-        let timestamps = convert_to_timestamps(&vec![String::from(date_range)])?;
-        // timestamps are guaranteed to be a vector of at least one element, so we can unwrap
-        let start = timestamps.iter().next().unwrap();
-        let end = timestamps.iter().last().unwrap();
-        let query =
-            "SELECT date, meal FROM meals WHERE date >= :start AND date <= :end ORDER BY date ASC";
-        let mut statement = self.connection.prepare(query)?;
-        statement
-            .bind_iter::<_, (_, Value)>([(":start", (*start).into()), (":end", (*end).into())])?;
-        let mut records = Vec::new();
-        while let Ok(State::Row) = statement.next() {
-            let timestamp = statement.read::<i64, _>("date")?;
-            let meal = statement.read::<String, _>("meal")?;
-            records.push(MealRecord { meal, timestamp });
-        }
-        Ok(records)
-    }
-
-    /// Suggest meals to cook. Returns [MealRecord]s of the suggested meals and the last dates when
-    /// they were cooked. Ignores the meals in the *ignore* vector and meals recorded on the dates
-    /// in the look_ahead vector.
+    /// Suggest meals to cook. Returns [MealRecord]s of the suggested meals.
+    /// Ignores the meals in the *ignore* vector and meals with dates
+    /// represented by the *look_ahead* argument.
+    ///
+    /// Example:
+    /// ```
+    /// use libmrot::{LookAhead, MealRecord, Storage};
+    ///
+    /// // open in-memory storage
+    /// let storage = Storage::open(":memory:").unwrap();
+    ///
+    /// // fill storage with data
+    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2")]).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "meat balls",
+    ///     &vec![
+    ///         String::from("from March 3 through March 4"),
+    ///         String::from("March 11")
+    ///     ]
+    /// ).unwrap();
+    /// storage.add_meal_on_dates("pizza", &vec![String::from("March 5")]).unwrap();
+    /// storage.add_meal_on_dates("steak", &vec![String::from("March 6")]).unwrap();
+    /// storage.add_meal_on_dates("lentils and wieners", &vec![String::from("March 8 through March 9")]).unwrap();
+    ///
+    /// let ignore = vec![String::from("spaghetti")];
+    ///
+    /// let look_ahead: Option<LookAhead> = LookAhead::new(Some("from March 10 through March 22".to_string())).unwrap();
+    ///
+    /// // suggestions will contain the records of pizza, steak, lentils and wieners.
+    /// // Spaghetti were ignored by our *ignore* vector,
+    /// // meat balls were ignored because one of their dates is inside the look_ahead period
+    /// let suggestions: Vec<MealRecord> = storage.what(3, look_ahead, ignore).unwrap();
+    /// suggestions.into_iter().for_each(|record| println!("{}", record));
+    /// ```
     #[instrument]
     pub fn what(
         &self,
@@ -217,17 +228,98 @@ impl Storage {
     /// ```
     /// use libmrot::Storage;
     ///
-    /// // fill storage with some data
-    /// let storage = Storage::open(":memory:");
-    /// storage.add_meal_on_dates("pork liver", Vec::new(String::from("yesterday")));
-    /// storage.add_meal_on_dates("champaign and caviar", Vec::new(String::from("today")));
+    /// // prepare storage with some data
+    /// let storage = Storage::open(":memory:").unwrap();
+    /// let yesterday = vec![String::from("yesterday")];
+    /// let today = vec![String::from("today")];
+    /// storage.add_meal_on_dates("pork liver", &yesterday).unwrap();
+    /// storage.add_meal_on_dates("champaign and caviar", &today).unwrap();
     ///
+    /// // pick a random meal
     /// let random_pick = storage.random().unwrap().unwrap();
     /// println!("Let's have {} again, yay!", random_pick.meal);
+    /// ```
     #[instrument]
     pub fn random(&self) -> Result<Option<MealRecord>> {
         let unique = self.get_last_cooked_unique()?;
         Ok(unique.into_iter().choose(&mut rand::rng()))
+    }
+
+    /// Show what meals were consumed in the given date range.
+    ///
+    /// Example:
+    /// ```
+    /// use libmrot::{MealRecord, Storage};
+    ///
+    /// // open in-memory storage
+    /// let storage = Storage::open(":memory:").unwrap();
+    ///
+    /// // fill storage with some data
+    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2, 2025")]).unwrap();
+    /// storage.add_meal_on_dates("curry", &vec![String::from("from March 3 through March 4, 2025")]).unwrap();
+    ///
+    /// // get recorded data
+    /// let actual_meal_records = storage.show("March 2025").unwrap();
+    /// let expected_meal_records = vec![
+    ///     "1740787200, spaghetti".parse::<MealRecord>().unwrap(), // unix timestamp of March 1
+    ///     "1740873600, spaghetti".parse::<MealRecord>().unwrap(), // unix timestamp of March 2
+    ///     "1740960000, curry".parse::<MealRecord>().unwrap(), // unix timestamp of March 3
+    ///     "1741046400, curry".parse::<MealRecord>().unwrap(), // unix timestamp of March 4
+    /// ];
+    /// assert_eq!(actual_meal_records, expected_meal_records);
+    ///
+    /// actual_meal_records.into_iter().for_each(|record| println!("{}", record));
+    /// ```
+    /// will print:
+    /// ```text
+    /// spaghetti (2025-03-01)
+    /// spaghetti (2025-03-02)
+    /// curry (2025-03-03)
+    /// curry (2025-03-04)
+    /// ```
+    #[instrument]
+    pub fn show(&self, date_range: &str) -> Result<Vec<MealRecord>> {
+        let timestamps = convert_to_timestamps(&vec![String::from(date_range)])?;
+        // timestamps are guaranteed to be a vector of at least one element, so we can unwrap
+        let start = timestamps.iter().next().unwrap();
+        let end = timestamps.iter().last().unwrap();
+        self.get_meal_records_between_dates(*start, *end)
+    }
+
+    /// Show on what dates a meal was recorded.
+    ///
+    /// Example:
+    /// ```
+    /// use libmrot::Storage;
+    ///
+    /// // open in-memory storage
+    /// let storage = Storage::open(":memory:").unwrap();
+    ///
+    /// // fill storage with some data
+    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2, 2025")]).unwrap();
+    /// storage.add_meal_on_dates("curry", &vec![String::from("from March 3 through March 4, 2025")]).unwrap();
+    ///
+    /// // get recorded data
+    /// let actual_dates = storage.when("spaghetti").unwrap();
+    /// actual_dates.into_iter().for_each(|date| println!("{}", date));
+    /// ```
+    /// will print:
+    /// ```text
+    /// 2025-03-01
+    /// 2025-03-02
+    /// ```
+    #[instrument]
+    pub fn when(&self, meal: &str) -> Result<Vec<NaiveDate>> {
+        let query = "SELECT date FROM meals WHERE meal = :meal ORDER BY date ASC";
+        let mut statement = self.connection.prepare(query)?;
+        statement.bind((":meal", meal))?;
+        let mut naive_dates: Vec<NaiveDate> = vec![];
+        while let Ok(State::Row) = statement.next() {
+            let timestamp = statement.read::<i64, _>("date")?;
+            let naive_date = convert_to_naive_date(timestamp)?;
+            naive_dates.push(naive_date);
+        }
+        Ok(naive_dates)
     }
 }
 

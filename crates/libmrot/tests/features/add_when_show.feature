@@ -19,8 +19,8 @@ Feature: Add meal, When meal, Show date range
         Then the storage, asked when <meal> was recorded, returns <naive_dates>
 
         Examples:
-            | meal    | text_dates                                            | naive_dates                        |
-            | chicken | 2025-02-23; 2025-02-24; 2025-02-25                    | 2025-02-23, 2025-02-24, 2025-02-25 |
+            | meal    | text_dates                         | naive_dates                        |
+            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | 2025-02-23, 2025-02-24, 2025-02-25 |
 
      Scenario Outline: Add meal on several dates, ask what meals between dates
         Given an empty in-memory storage

@@ -180,7 +180,7 @@ impl FromStr for TextLookAhead {
 
     /// Construct a TextLookAhead from a string.
     /// The string `"None"` constructs TextLookAhead containing the [None] variant of
-    /// Option<LookAhead>
+    /// `[Option]<[LookAhead]>`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let option_look_ahead = match s {
             "None" => LookAhead::new(None)?,
