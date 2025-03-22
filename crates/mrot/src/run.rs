@@ -27,6 +27,21 @@ pub fn run() -> Result<()> {
             storage.add_meal_on_dates(&add.meal, &dates)?;
         }
 
+        Command::ParseDate(parse_date) => {
+            let date = &parse_date.date;
+            match &parse_date.output_timestamp {
+                false => {
+                    let mrot_dates = mrot_parse(&date)?;
+                    println!("{:?}", mrot_dates);
+                }
+                true => {
+                    let date_vec = vec![String::from(date)];
+                    let converted_dates: Vec<i64> = convert_to_timestamps(&date_vec)?;
+                    println!("{:?}", converted_dates);
+                }
+            };
+        }
+
         Command::What(what) => {
             if let Some(ref number) = what.number {
                 debug!("what number is {}", number);
@@ -83,6 +98,13 @@ pub fn run() -> Result<()> {
             meals.into_iter().for_each(|meal| println!("{}", meal));
         }
 
+        Command::Random(_) => {
+            let storage = open_storage()?;
+            if let Some(meal) = storage.random()? {
+                println!("{}", meal);
+            }
+        }
+
         Command::Show(show) => {
             if let Some(range) = &show.range {
                 println!("show range is {}", range);
@@ -96,10 +118,6 @@ pub fn run() -> Result<()> {
 
         Command::When(when) => {
             println!("when meal is {}", when.meal);
-        }
-
-        Command::Random(_) => {
-            println!("random is run");
         }
 
         Command::Remove(remove) => {
@@ -187,21 +205,6 @@ pub fn run() -> Result<()> {
                     print_completions(shells::Zsh, &mut cmd);
                 }
             }
-        }
-
-        Command::ParseDate(parse_date) => {
-            let date = &parse_date.date;
-            match &parse_date.output_timestamp {
-                false => {
-                    let mrot_dates = mrot_parse(&date)?;
-                    println!("{:?}", mrot_dates);
-                }
-                true => {
-                    let date_vec = vec![String::from(date)];
-                    let converted_dates: Vec<i64> = convert_to_timestamps(&date_vec)?;
-                    println!("{:?}", converted_dates);
-                }
-            };
         }
 
         Command::Path(path) => match path {
