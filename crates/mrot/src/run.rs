@@ -79,7 +79,7 @@ pub fn run() -> Result<()> {
                     // LookAhead::new(cfg.what.look_ahead)? will be an Option<LookAhead>.
                     // If the config contains the None variant of Option<String>,
                     // the result will be the None variant of Option<LookAhead>, i. e. no look-ahead.
-                    // If the config contains a Some vairant of Option<String>,
+                    // If the config contains a Some variant of Option<String>,
                     // the result will be the Some variant of Option<LookAhead>, i. e. some look-ahead.
                     None => LookAhead::new(cfg.what.look_ahead)?,
                     // the cli option --look-ahead was explicitly used. The user wants to override
@@ -91,7 +91,6 @@ pub fn run() -> Result<()> {
                 },
             };
             debug!("resulting look-ahead is {:?}", option_look_ahead);
-            debug!("storage::what is run");
             let storage = open_storage()?;
             let meals = storage.what(number, option_look_ahead, ignore_list)?;
             debug!("{:?}", meals);
@@ -106,18 +105,21 @@ pub fn run() -> Result<()> {
         }
 
         Command::Show(show) => {
-            if let Some(range) = &show.range {
-                println!("show range is {}", range);
-                // TODO: open actual storage on disk
-                let _storage = Storage::open(":memory")?;
-                println!("here I would show the meals in the given date range");
-            } else {
-                println!("here I would show the meals in the default date range");
-            }
+            let storage = open_storage()?;
+            let range = match show.range {
+                Some(ref range_from_cli) => range_from_cli,
+                None => &cfg.show.range,
+            };
+            let meals = storage.show(range)?;
+            meals.into_iter().for_each(|meal| println!("{}", meal));
         }
 
         Command::When(when) => {
-            println!("when meal is {}", when.meal);
+            let storage = open_storage()?;
+            let dates = storage.when(&when.meal)?;
+            dates
+                .into_iter()
+                .for_each(|naive_date| println!("{}", naive_date));
         }
 
         Command::Remove(remove) => {
