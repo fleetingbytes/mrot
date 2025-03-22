@@ -2,6 +2,7 @@
 
 mod error;
 pub mod argument;
+pub mod common_steps;
 
 pub use error::Error;
 use cucumber::{parser, runner, writer, Cucumber, World as _, WriterExt};
@@ -26,6 +27,7 @@ pub struct World {
     pub two_timer_parse_result: Option<String>,
     pub parse_result: Option<libmrot::Result<Vec<NaiveDate>>>,
     pub storage_what_result: Option<libmrot::Result<Vec<MealRecord>>>,
+    pub storage_random_result: Option<libmrot::Result<Option<MealRecord>>>,
 }
 
 /// Clean-up procedure after each scenario
