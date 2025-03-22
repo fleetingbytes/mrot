@@ -6,6 +6,7 @@ use crate::{
     LookAhead, MealRecord, Result,
 };
 use chrono::naive::NaiveDate;
+use rand::seq::IteratorRandom;
 use sqlite::{Connection, State, Value};
 use std::{cmp::min, fmt, path::Path};
 use tracing::{instrument, trace};
@@ -184,9 +185,9 @@ impl Storage {
         Ok(records)
     }
 
-    #[instrument(level = "trace")]
     /// Outputs [MealRecord]s with unique meals and their last dates. The result vector is sorted
     /// by date
+    #[instrument(level = "trace")]
     fn get_last_cooked_unique(&self) -> Result<Vec<MealRecord>> {
         let query = "SELECT meal, MAX(date) AS date FROM meals GROUP BY meal ORDER BY date ASC";
         let mut statement = self.connection.prepare(query)?;
@@ -208,6 +209,25 @@ impl Storage {
     fn pick_n_meal_records(number: usize, candidates: &mut Vec<MealRecord>) -> Vec<MealRecord> {
         _ = candidates.split_off(min(number, candidates.len()));
         candidates.drain(..).collect()
+    }
+
+    /// Samples one random element from all unique recorded meals.
+    ///
+    /// Example:
+    /// ```
+    /// use libmrot::Storage;
+    ///
+    /// // fill storage with some data
+    /// let storage = Storage::open(":memory:");
+    /// storage.add_meal_on_dates("pork liver", Vec::new(String::from("yesterday")));
+    /// storage.add_meal_on_dates("champaign and caviar", Vec::new(String::from("today")));
+    ///
+    /// let random_pick = storage.random().unwrap().unwrap();
+    /// println!("Let's have {} again, yay!", random_pick.meal);
+    #[instrument]
+    pub fn random(&self) -> Result<Option<MealRecord>> {
+        let unique = self.get_last_cooked_unique()?;
+        Ok(unique.into_iter().choose(&mut rand::rng()))
     }
 }
 
