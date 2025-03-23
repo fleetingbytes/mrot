@@ -15,14 +15,14 @@ pub enum Error {
     Sqlite(SqliteError),
     /// Wraps [`two_timer::TimeError`]
     TwoTimer(TimeError),
-    /// A [`chrono::NaiveDate`] cannot be converted to [`chrono::NaiveDateTime`]
-    TimeNotSupported,
     /// A path does not have a parent directory
     NoParentDirectory,
     /// Timestamp cannot be converted into [`chrono::DateTime`]
     InvalidTimestamp(i64),
     /// [`crate::MealRecord`] cannot be parsed
     ParseMealRecordError,
+    /// A date expression parses to more than one date
+    MoreThanOneDate(String),
 }
 
 impl fmt::Display for Error {
@@ -32,10 +32,13 @@ impl fmt::Display for Error {
             Error::Io(io_error) => fmt::Display::fmt(io_error, f),
             Error::Sqlite(sqlite_error) => fmt::Display::fmt(sqlite_error, f),
             Error::TwoTimer(time_error) => fmt::Display::fmt(time_error, f),
-            Error::TimeNotSupported => fmt::Display::fmt("such time is not supported", f),
             Error::NoParentDirectory => fmt::Display::fmt("cannot find parent directory", f),
             Error::InvalidTimestamp(i) => fmt::Display::fmt(&format!("invalid timestamp {}", i), f),
             Error::ParseMealRecordError => fmt::Display::fmt("cannot parse MealRecord", f),
+            Error::MoreThanOneDate(s) => fmt::Display::fmt(
+                &format!("date expression '{}' parses to more than one date ", s),
+                f,
+            ),
         }
     }
 }
@@ -47,10 +50,10 @@ impl std::error::Error for Error {
             Error::Io(ref io_error) => Some(io_error),
             Error::Sqlite(ref sqlite_error) => Some(sqlite_error),
             Error::TwoTimer(ref time_error) => Some(time_error),
-            Error::TimeNotSupported => None,
             Error::NoParentDirectory => None,
             Error::InvalidTimestamp(_) => None,
             Error::ParseMealRecordError => None,
+            Error::MoreThanOneDate(_) => None,
         }
     }
 }
