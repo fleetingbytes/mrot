@@ -26,8 +26,8 @@ pub struct World {
     pub storage: Option<Storage>,
     pub two_timer_parse_result: Option<String>,
     pub parse_result: Option<libmrot::Result<Vec<NaiveDate>>>,
-    pub storage_what_result: Option<libmrot::Result<Vec<MealRecord>>>,
-    pub storage_random_result: Option<libmrot::Result<Option<MealRecord>>>,
+    pub result_vec_mealrecord: Option<libmrot::Result<Vec<MealRecord>>>,
+    pub result_option_mealrecord: Option<libmrot::Result<Option<MealRecord>>>,
 }
 
 /// Clean-up procedure after each scenario
