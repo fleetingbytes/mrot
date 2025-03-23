@@ -18,24 +18,26 @@ pub(crate) struct Cli {
 pub(crate) enum Command {
     /// Add records of meals eaten
     Add(AddArgs),
+    /// Parse date
+    ParseDate(ParseDateArgs),
     /// What you haven't eaten in the longest time
     What(WhatArgs),
+    /// Suggest a random meal
+    Random(RandomArgs),
     /// Show recorded meals
     Show(ShowArgs),
     /// Searches records of a given meal
     When(WhenArgs),
+    /// Show unique recorded meals
+    Unique(UniqueArgs),
     /// Remove records of meals
     Remove(RemoveArgs),
-    /// Suggest a random meal
-    Random(RandomArgs),
-    #[command(subcommand)]
     /// Manage mrot configuration
+    #[command(subcommand)]
     Config(ConfigCommand),
     /// Generate command completions
     #[command(subcommand)]
     Generate(GenerateCommand),
-    /// Parse date
-    ParseDate(ParseDateArgs),
     /// Show paths to data files
     #[command(subcommand)]
     Path(PathCommand),
@@ -48,6 +50,15 @@ pub(crate) struct AddArgs {
     /// Day to add this meal on
     #[arg(short, long, action = Append)]
     pub(crate) date: Option<Vec<String>>,
+}
+
+#[derive(Args)]
+pub(crate) struct ParseDateArgs {
+    /// Date string to parse
+    pub(crate) date: String,
+    /// Output dates as Unix timestamps
+    #[arg(short = 't', long, action = SetTrue)]
+    pub(crate) output_timestamp: bool,
 }
 
 #[derive(Args)]
@@ -70,6 +81,9 @@ pub(crate) struct WhatArgs {
 }
 
 #[derive(Args)]
+pub(crate) struct RandomArgs;
+
+#[derive(Args)]
 pub(crate) struct ShowArgs {
     /// Date or date range to show meals from (overrides config)
     pub(crate) range: Option<String>,
@@ -82,24 +96,15 @@ pub(crate) struct WhenArgs {
 }
 
 #[derive(Args)]
+pub(crate) struct UniqueArgs;
+
+#[derive(Args)]
 pub(crate) struct RemoveArgs {
     /// Time range to show meals from
     pub(crate) range: String,
     /// meal to remove
     #[arg(short, long)]
     pub(crate) meal: Option<String>,
-}
-
-#[derive(Args)]
-pub(crate) struct RandomArgs;
-
-#[derive(Args)]
-pub(crate) struct ParseDateArgs {
-    /// Date string to parse
-    pub(crate) date: String,
-    /// Output dates as Unix timestamps
-    #[arg(short = 't', long, action = SetTrue)]
-    pub(crate) output_timestamp: bool,
 }
 
 #[derive(Subcommand)]
