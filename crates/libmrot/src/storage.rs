@@ -198,8 +198,28 @@ impl Storage {
 
     /// Outputs [MealRecord]s with unique meals and their last dates. The result vector is sorted
     /// by date
-    #[instrument(level = "trace")]
-    fn get_last_cooked_unique(&self) -> Result<Vec<MealRecord>> {
+    ///
+    /// Example:
+    /// ```
+    /// use libmrot::{MealRecord, Storage};
+    ///
+    /// // open in-memory storage
+    /// let storage = Storage::open(":memory:").unwrap();
+    ///
+    /// // fill storage with some data
+    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2, 2025")]).unwrap();
+    /// storage.add_meal_on_dates("curry", &vec![String::from("from March 3 through March 4, 2025")]).unwrap();
+    ///
+    /// // get unique meals
+    /// let unique_meals = storage.get_last_cooked_unique().unwrap();
+    /// let expected_meal_records = vec![
+    ///     MealRecord::new("spaghetti", "March 2, 2025").unwrap(),
+    ///     MealRecord::new("curry", "March 4, 2025").unwrap(),
+    /// ];
+    /// assert_eq!(unique_meals, expected_meal_records);
+    /// ```
+    #[instrument]
+    pub fn get_last_cooked_unique(&self) -> Result<Vec<MealRecord>> {
         let query = "SELECT meal, MAX(date) AS date FROM meals GROUP BY meal ORDER BY date ASC";
         let mut statement = self.connection.prepare(query)?;
         let mut records = Vec::new();
@@ -261,10 +281,10 @@ impl Storage {
     /// // get recorded data
     /// let actual_meal_records = storage.show("March 2025").unwrap();
     /// let expected_meal_records = vec![
-    ///     "1740787200, spaghetti".parse::<MealRecord>().unwrap(), // unix timestamp of March 1
-    ///     "1740873600, spaghetti".parse::<MealRecord>().unwrap(), // unix timestamp of March 2
-    ///     "1740960000, curry".parse::<MealRecord>().unwrap(), // unix timestamp of March 3
-    ///     "1741046400, curry".parse::<MealRecord>().unwrap(), // unix timestamp of March 4
+    ///     MealRecord::new("spaghetti", "March 1, 2025").unwrap(),
+    ///     MealRecord::new("spaghetti", "March 2, 2025").unwrap(),
+    ///     MealRecord::new("curry", "March 3, 2025").unwrap(),
+    ///     MealRecord::new("curry", "March 4, 2025").unwrap(),
     /// ];
     /// assert_eq!(actual_meal_records, expected_meal_records);
     ///
