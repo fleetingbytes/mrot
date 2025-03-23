@@ -67,8 +67,8 @@ impl LookAhead {
                 let dates = parse_date(&date_string)?;
                 let first_date = dates.iter().next().unwrap();
                 let last_date = dates.iter().last().unwrap();
-                let first_day_timestamp = convert_date_to_timestamp(first_date)?;
-                let last_day_timestamp = convert_date_to_timestamp(last_date)?;
+                let first_day_timestamp = convert_date_to_timestamp(first_date);
+                let last_day_timestamp = convert_date_to_timestamp(last_date);
                 Ok(Some(Self {
                     first_day_timestamp,
                     last_day_timestamp,
