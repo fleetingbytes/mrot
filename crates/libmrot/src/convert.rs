@@ -78,27 +78,27 @@ pub fn convert_to_timestamps(dates: &Vec<String>) -> Result<Vec<i64>> {
     dates
         .iter()
         .map(|date| {
-            parse_date(date).and_then(|naive_dates| {
+            parse_date(date).map(|naive_dates| {
                 naive_dates
                     .iter()
-                    .map(convert_date_to_timestamp)
-                    .collect::<Result<Vec<i64>>>()
+                    .map(|naive_date| convert_date_to_timestamp(naive_date))
+                    .collect::<Vec<i64>>()
             })
         })
         .collect::<Result<Vec<Vec<i64>>>>()
-        .map(|vecs| vecs.into_iter().flatten().collect())
+        .map(|nested| nested.into_iter().flatten().collect())
 }
 
 /// Converts a NaiveDate to Unix timestamp
 #[instrument(level = "debug", fields(result))]
-pub(crate) fn convert_date_to_timestamp(date: &NaiveDate) -> Result<i64> {
+pub(crate) fn convert_date_to_timestamp(date: &NaiveDate) -> i64 {
     let timestamp = date
         .and_hms_opt(0, 0, 0)
-        .ok_or(Error::TimeNotSupported)?
+        .expect("invalid hour, minute, or second")
         .and_utc()
         .timestamp();
     Span::current().record("result", &timestamp);
-    Ok(timestamp)
+    timestamp
 }
 
 pub(crate) fn convert_to_naive_date(i: i64) -> Result<NaiveDate> {
