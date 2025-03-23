@@ -44,3 +44,7 @@ harness = false
 [[test]]
 name = "random_meal"
 harness = false
+
+[[test]]
+name = "unique_meals"
+harness = false

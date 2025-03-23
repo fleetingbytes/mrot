@@ -1,7 +1,7 @@
 //! A collection of test steps used in the tests of [libmrot] which are shared among test targets
 
-use crate::{World, Result, argument::DateString};
-use cucumber::{given, gherkin::Step};
+use crate::{World, Result, Error, argument::{DateString, MealRecords}};
+use cucumber::{given, then, gherkin::Step};
 use tracing::debug;
 use libmrot::Storage;
 
@@ -19,5 +19,13 @@ pub async fn a_storage_with_records(world: &mut World, step: &Step) -> Result<()
         }
         world.storage = Some(storage);
     }
+    Ok(())
+}
+
+/// Checks the `Result<Vec<MealRecord>>`
+#[then(regex = r"^I get the meal records (?P<records>.*)$")]
+pub async fn check_result_vec_mealrecord(world: &mut World, expected_records: MealRecords) -> Result<()> {
+    let actual_records = world.result_vec_mealrecord.as_ref().ok_or(Error::UndefinedValue("storage_what_result".to_string()))?.as_ref().map_err(|e| Error::UnexpectedErrResult(format!("{:?}", e)))?;
+    assert_eq!(*actual_records, expected_records.to_vec_mealrecord(), "storage.what returned {:?} but we expected {:?}", actual_records, expected_records);
     Ok(())
 }
