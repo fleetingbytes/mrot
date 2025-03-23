@@ -122,6 +122,14 @@ pub fn run() -> Result<()> {
                 .for_each(|naive_date| println!("{}", naive_date));
         }
 
+        Command::Unique(_) => {
+            let storage = open_storage()?;
+            let unique_meals = storage.get_last_cooked_unique()?;
+            unique_meals
+                .into_iter()
+                .for_each(|record| println!("{}", record));
+        }
+
         Command::Remove(remove) => {
             println!("remove range is {}", remove.range);
             if let Some(meal) = &remove.meal {
