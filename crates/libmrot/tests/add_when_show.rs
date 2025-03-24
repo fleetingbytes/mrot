@@ -31,6 +31,7 @@ async fn storage_when(world: &mut World, meal: String, expected_naive_dates: Nai
     Ok(())
 }
 
+// TODO: replace with common step storage_show_meal_records
 #[then(regex = r"^the storage, asked for the dates (?P<show_range>.*) returns (?P<meals>.*)$")]
 async fn storage_show(world: &mut World, show_range: String, expected_meals: Meals) -> Result<()> {
     let storage = world.storage.as_ref().ok_or(Error::UndefinedValue("storage".to_string()))?;

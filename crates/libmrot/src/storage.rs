@@ -362,6 +362,18 @@ impl Storage {
         }
         Ok(naive_dates)
     }
+
+    /// Remove all meals in the given period
+    #[instrument]
+    pub fn remove_all(&self, period: &str) -> Result<Vec<MealRecord>> {
+        todo!("to be implemented");
+    }
+
+    /// Remove a specific meal in the given period
+    #[instrument]
+    pub fn remove(&self, meal: &str, period: &str) -> Result<Vec<MealRecord>> {
+        todo!("to be implemented");
+    }
 }
 
 impl fmt::Debug for Storage {

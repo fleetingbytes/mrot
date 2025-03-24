@@ -5,7 +5,7 @@ use cucumber::{given, then, gherkin::Step};
 use tracing::debug;
 use libmrot::Storage;
 
-/// Provides a storages filled with the records specified in the feature file
+/// Provides a storage filled with the records specified in the feature file (in the step table)
 #[given(regex = r"^an in-memory storage with the records$")]
 pub async fn a_storage_with_records(world: &mut World, step: &Step) -> Result<()> {
     if let Some(table) = step.table.as_ref() {
@@ -26,6 +26,15 @@ pub async fn a_storage_with_records(world: &mut World, step: &Step) -> Result<()
 #[then(regex = r"^I get the meal records (?P<records>.*)$")]
 pub async fn check_result_vec_mealrecord(world: &mut World, expected_records: MealRecords) -> Result<()> {
     let actual_records = world.result_vec_mealrecord.as_ref().ok_or(Error::UndefinedValue("storage_what_result".to_string()))?.as_ref().map_err(|e| Error::UnexpectedErrResult(format!("{:?}", e)))?;
-    assert_eq!(*actual_records, expected_records.to_vec_mealrecord(), "storage.what returned {:?} but we expected {:?}", actual_records, expected_records);
+    assert_eq!(*actual_records, expected_records.to_vec_mealrecord(), "found {:?} but we expected {:?}", actual_records, expected_records);
+    Ok(())
+}
+
+/// Checks the content of the storage
+#[then(regex = r"^the storage, asked to show the meal records in the period (?P<show_range>.*), returns (?P<meal_records>.*)$")]
+pub async fn storage_show_meal_records(world: &mut World, show_range: String, expected_meal_records: MealRecords) -> Result<()> {
+    let storage = world.storage.as_ref().ok_or(Error::UndefinedValue("storage".to_string()))?;
+    let actual_meal_records = storage.show(&show_range)?;
+    assert_eq!(actual_meal_records, expected_meal_records.to_vec_mealrecord(), "storage.show returned {:?} but we expected {:?}", actual_meal_records, expected_meal_records);
     Ok(())
 }
