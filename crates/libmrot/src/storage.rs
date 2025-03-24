@@ -366,13 +366,78 @@ impl Storage {
     /// Remove all meals in the given period
     #[instrument]
     pub fn remove_all(&self, period: &str) -> Result<Vec<MealRecord>> {
-        todo!("to be implemented");
+        let period = LookAhead::new(Some(period.to_string()))?.unwrap();
+        let start = period.first_day_timestamp();
+        let end = period.last_day_timestamp();
+        let mut soon_to_be_removed = self.get_meal_records_between_dates(start, end)?;
+        soon_to_be_removed.sort_by_key(|record| record.timestamp);
+        self.remove_all_meal_records_between_dates(start, end)?;
+        let removed = soon_to_be_removed;
+        Ok(removed)
+    }
+
+    fn remove_all_meal_records_between_dates(&self, start: i64, end: i64) -> Result<()> {
+        let query = "DELETE FROM meals WHERE date >= :start AND date <= :end";
+        let mut statement = self.connection.prepare(query)?;
+        statement
+            .bind_iter::<_, (_, Value)>([(":start", (start).into()), (":end", (end).into())])?;
+        while let Ok(State::Row) = statement.next() {}
+        Ok(())
     }
 
     /// Remove a specific meal in the given period
     #[instrument]
     pub fn remove(&self, meal: &str, period: &str) -> Result<Vec<MealRecord>> {
-        todo!("to be implemented");
+        let period = LookAhead::new(Some(period.to_string()))?.unwrap();
+        let start = period.first_day_timestamp();
+        let end = period.last_day_timestamp();
+        let mut soon_to_be_removed =
+            self.get_meal_records_of_meal_between_dates(meal, start, end)?;
+        soon_to_be_removed.sort_by_key(|record| record.timestamp);
+        self.remove_meal_records_of_meal_between_dates(meal, start, end)?;
+        let removed = soon_to_be_removed;
+        Ok(removed)
+    }
+
+    #[instrument(level = "trace")]
+    fn get_meal_records_of_meal_between_dates(
+        &self,
+        meal: &str,
+        start: i64,
+        end: i64,
+    ) -> Result<Vec<MealRecord>> {
+        let query =
+            "SELECT date, meal FROM meals WHERE meal = :meal AND date >= :start AND date <= :end ORDER BY date ASC";
+        let mut statement = self.connection.prepare(query)?;
+        statement.bind_iter::<_, (_, Value)>([
+            (":meal", meal.into()),
+            (":start", start.into()),
+            (":end", end.into()),
+        ])?;
+        let mut records = Vec::new();
+        while let Ok(State::Row) = statement.next() {
+            let timestamp = statement.read::<i64, _>("date")?;
+            let meal = statement.read::<String, _>("meal")?;
+            records.push(MealRecord { meal, timestamp });
+        }
+        Ok(records)
+    }
+
+    fn remove_meal_records_of_meal_between_dates(
+        &self,
+        meal: &str,
+        start: i64,
+        end: i64,
+    ) -> Result<()> {
+        let query = "DELETE FROM meals WHERE meal = :meal AND date >= :start AND date <= :end";
+        let mut statement = self.connection.prepare(query)?;
+        statement.bind_iter::<_, (_, Value)>([
+            (":meal", meal.into()),
+            (":start", start.into()),
+            (":end", end.into()),
+        ])?;
+        while let Ok(State::Row) = statement.next() {}
+        Ok(())
     }
 }
 
