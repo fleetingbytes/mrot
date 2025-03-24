@@ -1,4 +1,4 @@
-Feature: Uniqu Meals
+Feature: Unique Meals
 
     Scenario Outline:
         Given an in-memory storage with the records
