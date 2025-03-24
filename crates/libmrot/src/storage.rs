@@ -110,9 +110,13 @@ impl Storage {
         Ok(())
     }
 
-    /// Suggest meals to cook. Returns [MealRecord]s of the suggested meals.
-    /// Ignores the meals in the *ignore* vector and meals with dates
-    /// represented by the *look_ahead* argument.
+    /// Suggest meals to cook.
+    /// Each suggested meal comes as a [MealRecord] with the date of date of its
+    /// latest consumption.
+    ///
+    /// Function takes two kinds of filters:
+    /// 1. look_ahead: to ignore the kinds of meals within a specified date range
+    /// 2. ignore: to ignore specific kinds of meals in general
     ///
     /// Example:
     /// ```
@@ -122,27 +126,44 @@ impl Storage {
     /// let storage = Storage::open(":memory:").unwrap();
     ///
     /// // fill storage with data
-    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2")]).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "spaghetti",
+    ///     &vec![String::from("from March 1 through March 2")]
+    ///     ).unwrap();
     /// storage.add_meal_on_dates(
     ///     "meat balls",
     ///     &vec![
     ///         String::from("from March 3 through March 4"),
     ///         String::from("March 11")
-    ///     ]
-    /// ).unwrap();
+    ///     ]).unwrap();
     /// storage.add_meal_on_dates("pizza", &vec![String::from("March 5")]).unwrap();
     /// storage.add_meal_on_dates("steak", &vec![String::from("March 6")]).unwrap();
-    /// storage.add_meal_on_dates("lentils and wieners", &vec![String::from("March 8 through March 9")]).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "lentils and wieners",
+    ///     &vec![String::from("March 8 through March 9")]
+    ///     ).unwrap();
     ///
+    /// // we are going to ignore the kinds of meals
+    /// // which were or will be consumed on these dates:
+    /// let look_ahead: Option<LookAhead> = LookAhead::new(
+    ///     Some("from March 10 through March 22".to_string())
+    ///     ).unwrap();
+    /// // we are also going to ignore spaghetti in general
     /// let ignore = vec![String::from("spaghetti")];
     ///
-    /// let look_ahead: Option<LookAhead> = LookAhead::new(Some("from March 10 through March 22".to_string())).unwrap();
-    ///
-    /// // suggestions will contain the records of pizza, steak, lentils and wieners.
-    /// // Spaghetti were ignored by our *ignore* vector,
-    /// // meat balls were ignored because one of their dates is inside the look_ahead period
+    /// // get meal suggestions
     /// let suggestions: Vec<MealRecord> = storage.what(3, look_ahead, ignore).unwrap();
-    /// suggestions.into_iter().for_each(|record| println!("{}", record));
+    ///
+    /// // we expect the suggestions to contain the records of pizza, steak, lentils and wieners.
+    /// // Meat balls were ignored because one of their dates is inside the look_ahead period
+    /// // Spaghetti were ignored by our *ignore* vector,
+    /// let expected_suggestions: Vec<MealRecord> = vec![
+    ///     MealRecord::new("pizza", "March 5").unwrap(),
+    ///     MealRecord::new("steak", "March 6").unwrap(),
+    ///     MealRecord::new("lentils and wieners", "March 9").unwrap(),
+    /// ];
+    ///
+    /// assert_eq!(suggestions, expected_suggestions);
     /// ```
     #[instrument]
     pub fn what(
