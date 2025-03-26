@@ -364,6 +364,28 @@ impl Storage {
     }
 
     /// Remove all meals in the given period
+    ///
+    /// Example:
+    /// ```
+    /// use libmrot::{MealRecord, Storage};
+    ///
+    /// // open in-memory storage
+    /// let storage = Storage::open(":memory:").unwrap();
+    ///
+    /// // fill storage with some data
+    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2, 2025")]).unwrap();
+    /// storage.add_meal_on_dates("curry", &vec![String::from("from March 3 through March 4, 2025")]).unwrap();
+    ///
+    /// // remove spaghetti in March
+    /// let deleted_records = storage.remove_all("March 2 through March 3").unwrap();
+    ///
+    /// let expected_deleted_records = vec![
+    ///     MealRecord::new("spaghetti", "March 2").unwrap(),
+    ///     MealRecord::new("curry", "March 3").unwrap(),
+    /// ];
+    ///
+    /// assert_eq!(deleted_records, expected_deleted_records);
+    /// ```
     #[instrument]
     pub fn remove_all(&self, period: &str) -> Result<Vec<MealRecord>> {
         let period = LookAhead::new(Some(period.to_string()))?.unwrap();
@@ -385,7 +407,29 @@ impl Storage {
         Ok(())
     }
 
-    /// Remove a specific meal in the given period
+    /// Remove a specific meal in the given period.
+    ///
+    /// Example:
+    /// ```
+    /// use libmrot::{MealRecord, Storage};
+    ///
+    /// // open in-memory storage
+    /// let storage = Storage::open(":memory:").unwrap();
+    ///
+    /// // fill storage with some data
+    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2, 2025")]).unwrap();
+    /// storage.add_meal_on_dates("curry", &vec![String::from("from March 3 through March 4, 2025")]).unwrap();
+    ///
+    /// // remove spaghetti in March
+    /// let deleted_records = storage.remove("spaghetti", "March").unwrap();
+    ///
+    /// let expected_deleted_records = vec![
+    ///     MealRecord::new("spaghetti", "March 1").unwrap(),
+    ///     MealRecord::new("spaghetti", "March 2").unwrap(),
+    /// ];
+    ///
+    /// assert_eq!(deleted_records, expected_deleted_records);
+    /// ```
     #[instrument]
     pub fn remove(&self, meal: &str, period: &str) -> Result<Vec<MealRecord>> {
         let period = LookAhead::new(Some(period.to_string()))?.unwrap();
