@@ -1,5 +1,7 @@
 //! Mrot error
 
+#[allow(unused_imports)]
+use crate::MealRecord;
 use sqlite::Error as SqliteError;
 use std::{convert::From, fmt, io::Error as IoError, num::ParseIntError};
 use two_timer::TimeError;
@@ -19,7 +21,7 @@ pub enum Error {
     NoParentDirectory,
     /// Timestamp cannot be converted into [`chrono::DateTime`]
     InvalidTimestamp(i64),
-    /// [`crate::MealRecord`] cannot be parsed
+    /// [`MealRecord`] cannot be parsed
     ParseMealRecordError,
     /// A date expression parses to more than one date
     MoreThanOneDate(String),

@@ -84,7 +84,10 @@ impl Storage {
     ///
     /// // prepare dates where each meal was consumed
     /// let bolognese_dates = vec![String::from("from yesterday through today")];
-    /// let rib_eye_steak_dates = vec![String::from("this Sunday"), String::from("2025-03-13 through 2025-03-14")];
+    /// let rib_eye_steak_dates = vec![
+    ///     "this Sunday".to_string(),
+    ///     "2025-03-13 through 2025-03-14".to_string(),
+    ///     ];
     ///
     /// // store the data in the storage
     /// storage.add_meal_on_dates("bolognese", &bolognese_dates).unwrap();
@@ -134,7 +137,7 @@ impl Storage {
     ///     "meat balls",
     ///     &vec![
     ///         String::from("from March 3 through March 4"),
-    ///         String::from("March 11")
+    ///         String::from("March 11"),
     ///     ]).unwrap();
     /// storage.add_meal_on_dates("pizza", &vec![String::from("March 5")]).unwrap();
     /// storage.add_meal_on_dates("steak", &vec![String::from("March 6")]).unwrap();
@@ -228,8 +231,14 @@ impl Storage {
     /// let storage = Storage::open(":memory:").unwrap();
     ///
     /// // fill storage with some data
-    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2, 2025")]).unwrap();
-    /// storage.add_meal_on_dates("curry", &vec![String::from("from March 3 through March 4, 2025")]).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "spaghetti",
+    ///     &vec![String::from("from March 1 through March 2, 2025")],
+    ///     ).unwrap();
+    /// storage.add_meal_on_dates(
+    ///      "curry",
+    ///      &vec![String::from("from March 3 through March 4, 2025")],
+    ///      ).unwrap();
     ///
     /// // get unique meals
     /// let unique_meals = storage.get_last_cooked_unique().unwrap();
@@ -296,8 +305,14 @@ impl Storage {
     /// let storage = Storage::open(":memory:").unwrap();
     ///
     /// // fill storage with some data
-    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2, 2025")]).unwrap();
-    /// storage.add_meal_on_dates("curry", &vec![String::from("from March 3 through March 4, 2025")]).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "spaghetti",
+    ///     &vec![String::from("from March 1 through March 2, 2025")],
+    ///     ).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "curry",
+    ///     &vec![String::from("from March 3 through March 4, 2025")],
+    ///     ).unwrap();
     ///
     /// // get recorded data
     /// let actual_meal_records = storage.show("March 2025").unwrap();
@@ -337,8 +352,14 @@ impl Storage {
     /// let storage = Storage::open(":memory:").unwrap();
     ///
     /// // fill storage with some data
-    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2, 2025")]).unwrap();
-    /// storage.add_meal_on_dates("curry", &vec![String::from("from March 3 through March 4, 2025")]).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "spaghetti",
+    ///     &vec![String::from("from March 1 through March 2")],
+    ///     ).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "curry",
+    ///     &vec![String::from("from March 3 through March 4")],
+    ///     ).unwrap();
     ///
     /// // get recorded data
     /// let actual_dates = storage.when("spaghetti").unwrap();
@@ -373,8 +394,14 @@ impl Storage {
     /// let storage = Storage::open(":memory:").unwrap();
     ///
     /// // fill storage with some data
-    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2, 2025")]).unwrap();
-    /// storage.add_meal_on_dates("curry", &vec![String::from("from March 3 through March 4, 2025")]).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "spaghetti",
+    ///     &vec![String::from("from March 1 through March 2")],
+    ///     ).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "curry",
+    ///     &vec![String::from("from March 3 through March 4")],
+    ///     ).unwrap();
     ///
     /// // remove spaghetti in March
     /// let deleted_records = storage.remove_all("March 2 through March 3").unwrap();
@@ -417,8 +444,14 @@ impl Storage {
     /// let storage = Storage::open(":memory:").unwrap();
     ///
     /// // fill storage with some data
-    /// storage.add_meal_on_dates("spaghetti", &vec![String::from("from March 1 through March 2, 2025")]).unwrap();
-    /// storage.add_meal_on_dates("curry", &vec![String::from("from March 3 through March 4, 2025")]).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "spaghetti",
+    ///     &vec![String::from("from March 1 through March 2, 2025")],
+    ///     ).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "curry",
+    ///     &vec![String::from("from March 3 through March 4, 2025")],
+    ///     ).unwrap();
     ///
     /// // remove spaghetti in March
     /// let deleted_records = storage.remove("spaghetti", "March").unwrap();

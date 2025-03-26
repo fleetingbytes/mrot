@@ -45,11 +45,17 @@ impl LookAhead {
     /// let no_look_ahead: Option<LookAhead> = LookAhead::new(None).unwrap();
     /// assert!(no_look_ahead.is_none());
     ///
-    /// let one_day_look_ahead: Option<LookAhead> = LookAhead::new(Some("tomorrow".to_string())).unwrap();
+    /// let one_day_look_ahead: Option<LookAhead> = LookAhead::new(
+    ///     Some("tomorrow".to_string())
+    ///     ).unwrap();
     /// assert!(one_day_look_ahead.is_some_and(|la| la.first_date() == la.last_date()));
     ///
-    /// let multiple_day_look_ahead: Option<LookAhead> = LookAhead::new(Some("from tomorrow through 11 days after tomorrow".to_string())).unwrap();
-    /// assert!(multiple_day_look_ahead.is_some_and(|la| la.first_date().checked_add_days(Days::new(11)).unwrap() == la.last_date()));
+    /// let multiple_day_look_ahead: Option<LookAhead> = LookAhead::new(
+    ///     Some("from tomorrow through 11 days after tomorrow".to_string())
+    ///     ).unwrap();
+    /// assert!(multiple_day_look_ahead.is_some_and(
+    ///     |la| la.first_date().checked_add_days(Days::new(11)).unwrap() == la.last_date())
+    ///     );
     /// ```
     ///
     /// Error:
