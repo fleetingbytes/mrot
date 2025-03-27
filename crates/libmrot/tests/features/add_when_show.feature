@@ -3,7 +3,7 @@ Feature: Add meal, When meal, Show date range
     Scenario Outline: Add meal, show when meal
         Given an empty in-memory storage
         When I add the meal <meal> on the date <text_date> to the storage
-        Then the storage, asked when <meal> was recorded, returns <naive_dates>
+        Then the storage, asked when <meal> was consumed, returns <naive_dates>
 
         Examples:
             | meal      | text_date                                                            | naive_dates                                                |
@@ -16,7 +16,7 @@ Feature: Add meal, When meal, Show date range
      Scenario Outline: Add meal on several dates, show when meal
         Given an empty in-memory storage
         When I add the meal <meal> on the dates <text_dates> to the storage
-        Then the storage, asked when <meal> was recorded, returns <naive_dates>
+        Then the storage, asked when <meal> was consumed, returns <naive_dates>
 
         Examples:
             | meal    | text_dates                         | naive_dates                        |

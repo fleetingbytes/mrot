@@ -1,8 +1,7 @@
 //! A collection of test steps used in the tests of [libmrot] which are shared among test targets
 
-use crate::{World, Result, Error, argument::{DateString, MealRecords}};
+use crate::{World, Result, Error, argument::{DateString, MealRecords, NaiveDates}};
 use cucumber::{given, then, gherkin::Step};
-use tracing::debug;
 use libmrot::Storage;
 
 /// Provides a storage filled with the records specified in the feature file (in the step table)
@@ -14,7 +13,6 @@ pub async fn a_storage_with_records(world: &mut World, step: &Step) -> Result<()
             let date_string = row[0].parse::<DateString>()?;
             let meal = &row[1];
             let dates: Vec<String> = vec![format!("{}", date_string)];
-            debug!(meal, ?dates, "adding to storage");
             storage.add_meal_on_dates(meal, &dates)?;
         }
         world.storage = Some(storage);
@@ -36,5 +34,13 @@ pub async fn storage_show_meal_records(world: &mut World, show_range: String, ex
     let storage = world.storage.as_ref().ok_or(Error::UndefinedValue("storage".to_string()))?;
     let actual_meal_records = storage.show(&show_range)?;
     assert_eq!(actual_meal_records, expected_meal_records.to_vec_mealrecord(), "storage.show returned {:?} but we expected {:?}", actual_meal_records, expected_meal_records);
+    Ok(())
+}
+
+#[then(regex = r"^the storage, asked when (?P<meal>.*) was consumed, returns (?P<naive_dates>.*)$")]
+pub async fn storage_when_meal(world: &mut World, meal: String, expected_naive_dates: NaiveDates) -> Result<()> {
+    let storage = world.storage.as_ref().ok_or(Error::UndefinedValue("storage".to_string()))?;
+    let actual_naive_dates = storage.when(&meal)?;
+    assert_eq!(actual_naive_dates, expected_naive_dates.to_vec_naivedate(), "storage.when returned {:?} but we expected {:?}", actual_naive_dates, expected_naive_dates);
     Ok(())
 }
