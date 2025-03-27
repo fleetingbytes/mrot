@@ -518,13 +518,101 @@ impl Storage {
     }
 
     /// Rename a meal from *old_name* to *new_name*, optionally rename only in the given [Period].
+    ///
+    /// Example:
+    /// ```
+    /// use libmrot::{MealRecord, Period, Storage};
+    ///
+    /// // open in-memory storage
+    /// let storage = Storage::open(":memory:").unwrap();
+    ///
+    /// // fill storage with some data
+    /// storage.add_meal_on_dates(
+    ///     "spaghetti",
+    ///     &vec![String::from("from March 1 through March 2")],
+    ///     ).unwrap();
+    /// storage.add_meal_on_dates(
+    ///     "curry",
+    ///     &vec![String::from("from March 3 through March 4")],
+    ///     ).unwrap();
+    ///
+    /// // rename spaghetti to penne on March 1st
+    /// let old_records = storage.rename("spaghetti", "penne", Some(Period::new("March 1").unwrap())).unwrap();
+    ///
+    /// let expected_old_records = vec![
+    ///     MealRecord::new("spaghetti", "March 1").unwrap(),
+    /// ];
+    ///
+    /// assert_eq!(old_records, expected_old_records);
+    ///
+    /// // check current records
+    /// let current_records = storage.show("from March 1 through March 2").unwrap();
+    /// let expected_current_records = vec![
+    ///     MealRecord::new("penne", "March 1").unwrap(),
+    ///     MealRecord::new("spaghetti", "March 2").unwrap(),
+    /// ];
+    ///
+    /// assert_eq!(current_records, expected_current_records);
+    /// ```
+    #[instrument]
     pub fn rename(
         &self,
-        _old_name: &str,
-        _new_name: &str,
-        _option_period: Option<Period>,
+        old_name: &str,
+        new_name: &str,
+        option_period: Option<Period>,
     ) -> Result<Vec<MealRecord>> {
-        todo!();
+        let condition = match option_period {
+            None => "meal = :meal",
+            Some(_) => "meal = :meal AND date >= :start AND date <= :end",
+        };
+
+        let mut params: Vec<(&str, Value)> = vec![(":meal", old_name.into())];
+        if let Some(period) = option_period {
+            params.push((":start", period.first_day_timestamp().into()));
+            params.push((":end", period.last_day_timestamp().into()));
+        }
+
+        self.update_records(condition, &params, new_name)
+    }
+
+    fn update_records(
+        &self,
+        condition: &str,
+        params: &[(&str, Value)],
+        new_name: &str,
+    ) -> Result<Vec<MealRecord>> {
+        self.connection.execute("BEGIN TRANSACTION")?;
+
+        let select_query = format!(
+            "SELECT date, meal FROM meals WHERE {} ORDER BY date ASC",
+            condition
+        );
+        let mut select_statement = self.connection.prepare(select_query)?;
+        for &(name, ref value) in params {
+            select_statement.bind((name, value))?;
+        }
+
+        let mut records = Vec::new();
+        while let Ok(State::Row) = select_statement.next() {
+            let timestamp = select_statement.read::<i64, _>("date")?;
+            let meal = select_statement.read::<String, _>("meal")?;
+            records.push(MealRecord { meal, timestamp });
+        }
+
+        let update_query = format!("UPDATE meals SET meal = :new_name WHERE {}", condition);
+        let mut update_statement = self.connection.prepare(update_query)?;
+        update_statement.bind((":new_name", new_name))?;
+        for &(name, ref value) in params {
+            update_statement.bind((name, value))?;
+        }
+
+        update_statement.next()?;
+
+        self.connection.execute("COMMIT").map_err(|e| {
+            let _ = self.connection.execute("ROLLBACK");
+            e
+        })?;
+        Ok(records)
     }
 }
 

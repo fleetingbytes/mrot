@@ -17,4 +17,4 @@ Feature: Rename Meals
             | spaghetti | bolognese | None                                 | 1741651200, spaghetti; 1741737600, spaghetti; 1741910400, spaghetti; 1741996800, spaghetti | 2025-03-11, 2025-03-12, 2025-03-14, 2025-03-15 |
             | spaghetti | bolognese | from March 11 through March 12, 2025 | 1741651200, spaghetti; 1741737600, spaghetti                                               | 2025-03-11, 2025-03-12                         |
             | spaghetti | bolognese | from March 14 through March 15, 2025 | 1741910400, spaghetti; 1741996800, spaghetti                                               | 2025-03-14, 2025-03-15                         |
-            | spaghetti | bolognese | from March 12 through March 14, 2025 | 1741651200, spaghetti; 1741996800, spaghetti                                               | 2025-03-12, 2025-03-14                         |
+            | spaghetti | bolognese | from March 12 through March 14, 2025 | 1741737600, spaghetti; 1741910400, spaghetti                                               | 2025-03-12, 2025-03-14                         |
