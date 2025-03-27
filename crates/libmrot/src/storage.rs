@@ -3,7 +3,7 @@
 use crate::{
     convert::{convert_to_naive_date, convert_to_timestamps},
     error::Error,
-    LookAhead, MealRecord, Result,
+    LookAhead, MealRecord, Period, Result,
 };
 use chrono::naive::NaiveDate;
 use rand::seq::IteratorRandom;
@@ -515,6 +515,16 @@ impl Storage {
         ])?;
         while let Ok(State::Row) = statement.next() {}
         Ok(())
+    }
+
+    /// Rename a meal from *old_name* to *new_name*, optionally rename only in the given [Period].
+    pub fn rename(
+        &self,
+        _old_name: &str,
+        _new_name: &str,
+        _option_period: Option<Period>,
+    ) -> Result<Vec<MealRecord>> {
+        todo!();
     }
 }
 
