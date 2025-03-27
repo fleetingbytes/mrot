@@ -4,7 +4,7 @@ members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0-alpha.11"
+version = "0.1.0-alpha.12"
 edition = "2024"
 rust-version = "1.85"
 authors = ["Sven Siegmund <sven.siegmund@gmail.com>"]
@@ -17,8 +17,8 @@ keywords = ["tools", "tracking", "meal", "cooking", "calendar"]
 categories = ["command-line-utilities"]
 
 [workspace.dependencies]
-libmrot = { path = "crates/libmrot", version = "0.1.0-alpha.11" }
-mrot_config = { path = "crates/mrot_config", version = "0.1.0-alpha.11" }
+libmrot = { path = "crates/libmrot", version = "0.1.0-alpha.12" }
+mrot_config = { path = "crates/mrot_config", version = "0.1.0-alpha.12" }
 mrot-test-utils = { path = "crates/mrot-test-utils" }
 
 chrono = "0.4"
@@ -36,6 +36,7 @@ tracing = "0.1"
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter", "registry"] }
 two_timer = "2"
+rand = "0.9"
 
 [workspace.lints.rust]
 

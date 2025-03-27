@@ -3,7 +3,7 @@
 
 use crate::Error;
 use chrono::{naive::NaiveDate, DateTime};
-use libmrot::{LookAhead, MealRecord};
+use libmrot::{LookAhead, MealRecord, Period};
 use std::{fmt, str::FromStr};
 
 const NAIVE_DATE_PARSE_FROM_STRING_FORMAT: &str = "%Y-%m-%d";
@@ -180,12 +180,39 @@ impl FromStr for TextLookAhead {
 
     /// Construct a TextLookAhead from a string.
     /// The string `"None"` constructs TextLookAhead containing the [None] variant of
-    /// Option<LookAhead>
+    /// `[Option]<[LookAhead]>`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let option_look_ahead = match s {
             "None" => LookAhead::new(None)?,
             _ => LookAhead::new(Some(String::from(s)))?,
         };
         Ok(TextLookAhead(option_look_ahead))
+    }
+}
+
+#[derive(Default)]
+pub struct WrappedPeriod(Option<Period>);
+
+impl WrappedPeriod {
+    pub fn to_option_period(&self) -> Option<Period> {
+        match self.0 {
+            None => None,
+            Some(ref period) => Some(period.clone()),
+        }
+    }
+}
+
+impl FromStr for WrappedPeriod {
+    type Err = Error;
+
+    /// Construct a WrappedPeriod from a string.
+    /// The string `"None"` constructs WrappedPeriod containing `None`.
+    /// Other strings try to construct a WrappedPeriod containing `Some(Period {...})`.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let option_period = match s {
+            "None" => None,
+            _ => Some(Period::new(s)?),
+        };
+        Ok(WrappedPeriod(option_period))
     }
 }

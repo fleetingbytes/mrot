@@ -27,6 +27,21 @@ pub fn run() -> Result<()> {
             storage.add_meal_on_dates(&add.meal, &dates)?;
         }
 
+        Command::ParseDate(parse_date) => {
+            let date = &parse_date.date;
+            match &parse_date.output_timestamp {
+                false => {
+                    let mrot_dates = mrot_parse(&date)?;
+                    println!("{:?}", mrot_dates);
+                }
+                true => {
+                    let date_vec = vec![String::from(date)];
+                    let converted_dates: Vec<i64> = convert_to_timestamps(&date_vec)?;
+                    println!("{:?}", converted_dates);
+                }
+            };
+        }
+
         Command::What(what) => {
             if let Some(ref number) = what.number {
                 debug!("what number is {}", number);
@@ -64,7 +79,7 @@ pub fn run() -> Result<()> {
                     // LookAhead::new(cfg.what.look_ahead)? will be an Option<LookAhead>.
                     // If the config contains the None variant of Option<String>,
                     // the result will be the None variant of Option<LookAhead>, i. e. no look-ahead.
-                    // If the config contains a Some vairant of Option<String>,
+                    // If the config contains a Some variant of Option<String>,
                     // the result will be the Some variant of Option<LookAhead>, i. e. some look-ahead.
                     None => LookAhead::new(cfg.what.look_ahead)?,
                     // the cli option --look-ahead was explicitly used. The user wants to override
@@ -76,30 +91,43 @@ pub fn run() -> Result<()> {
                 },
             };
             debug!("resulting look-ahead is {:?}", option_look_ahead);
-            debug!("storage::what is run");
             let storage = open_storage()?;
             let meals = storage.what(number, option_look_ahead, ignore_list)?;
             debug!("{:?}", meals);
             meals.into_iter().for_each(|meal| println!("{}", meal));
         }
 
-        Command::Show(show) => {
-            if let Some(range) = &show.range {
-                println!("show range is {}", range);
-                // TODO: open actual storage on disk
-                let _storage = Storage::open(":memory")?;
-                println!("here I would show the meals in the given date range");
-            } else {
-                println!("here I would show the meals in the default date range");
+        Command::Random(_) => {
+            let storage = open_storage()?;
+            if let Some(meal) = storage.random()? {
+                println!("{}", meal);
             }
         }
 
-        Command::When(when) => {
-            println!("when meal is {}", when.meal);
+        Command::Show(show) => {
+            let storage = open_storage()?;
+            let range = match show.range {
+                Some(ref range_from_cli) => range_from_cli,
+                None => &cfg.show.range,
+            };
+            let meals = storage.show(range)?;
+            meals.into_iter().for_each(|meal| println!("{}", meal));
         }
 
-        Command::Random(_) => {
-            println!("random is run");
+        Command::When(when) => {
+            let storage = open_storage()?;
+            let dates = storage.when(&when.meal)?;
+            dates
+                .into_iter()
+                .for_each(|naive_date| println!("{}", naive_date));
+        }
+
+        Command::Unique(_) => {
+            let storage = open_storage()?;
+            let unique_meals = storage.get_last_cooked_unique()?;
+            unique_meals
+                .into_iter()
+                .for_each(|record| println!("{}", record));
         }
 
         Command::Remove(remove) => {
@@ -187,21 +215,6 @@ pub fn run() -> Result<()> {
                     print_completions(shells::Zsh, &mut cmd);
                 }
             }
-        }
-
-        Command::ParseDate(parse_date) => {
-            let date = &parse_date.date;
-            match &parse_date.output_timestamp {
-                false => {
-                    let mrot_dates = mrot_parse(&date)?;
-                    println!("{:?}", mrot_dates);
-                }
-                true => {
-                    let date_vec = vec![String::from(date)];
-                    let converted_dates: Vec<i64> = convert_to_timestamps(&date_vec)?;
-                    println!("{:?}", converted_dates);
-                }
-            };
         }
 
         Command::Path(path) => match path {

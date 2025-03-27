@@ -5,12 +5,13 @@ use chrono::{DateTime, Days, NaiveDate, NaiveDateTime, TimeDelta};
 use tracing::{instrument, Span};
 
 /// Parses a given string into a vector of naive dates.
-/// Implicit or explicit time ranges (see [literal range][two-timer]) may result in multiple dates,
+/// Implicit or explicit time ranges (see two_timer's [literal range](https://docs.rs/two_timer/latest/two_timer/)) may result in multiple dates,
 /// if the range is longer than one full day.
 /// See the [parse date feature file](https://github.com/fleetingbytes/mrot/tree/master/crates/libmrot/tests/features/parse_date.feature)
 /// for detailed examples.
 ///
 /// The Result is guaranteed to contain at least one NaiveDate.
+/// [two-timer]:
 #[instrument]
 pub fn parse_date(date: &str) -> Result<Vec<NaiveDate>> {
     let (start_datetime, end_datetime, range_is_explicit) = two_timer::parse(date, None)?;
@@ -77,27 +78,27 @@ pub fn convert_to_timestamps(dates: &Vec<String>) -> Result<Vec<i64>> {
     dates
         .iter()
         .map(|date| {
-            parse_date(date).and_then(|naive_dates| {
+            parse_date(date).map(|naive_dates| {
                 naive_dates
                     .iter()
-                    .map(convert_date_to_timestamp)
-                    .collect::<Result<Vec<i64>>>()
+                    .map(|naive_date| convert_date_to_timestamp(naive_date))
+                    .collect::<Vec<i64>>()
             })
         })
         .collect::<Result<Vec<Vec<i64>>>>()
-        .map(|vecs| vecs.into_iter().flatten().collect())
+        .map(|nested| nested.into_iter().flatten().collect())
 }
 
 /// Converts a NaiveDate to Unix timestamp
 #[instrument(level = "debug", fields(result))]
-pub(crate) fn convert_date_to_timestamp(date: &NaiveDate) -> Result<i64> {
+pub(crate) fn convert_date_to_timestamp(date: &NaiveDate) -> i64 {
     let timestamp = date
         .and_hms_opt(0, 0, 0)
-        .ok_or(Error::TimeNotSupported)?
+        .expect("invalid hour, minute, or second")
         .and_utc()
         .timestamp();
     Span::current().record("result", &timestamp);
-    Ok(timestamp)
+    timestamp
 }
 
 pub(crate) fn convert_to_naive_date(i: i64) -> Result<NaiveDate> {

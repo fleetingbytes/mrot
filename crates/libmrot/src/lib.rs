@@ -45,11 +45,17 @@ impl LookAhead {
     /// let no_look_ahead: Option<LookAhead> = LookAhead::new(None).unwrap();
     /// assert!(no_look_ahead.is_none());
     ///
-    /// let one_day_look_ahead: Option<LookAhead> = LookAhead::new(Some("tomorrow".to_string())).unwrap();
+    /// let one_day_look_ahead: Option<LookAhead> = LookAhead::new(
+    ///     Some("tomorrow".to_string())
+    ///     ).unwrap();
     /// assert!(one_day_look_ahead.is_some_and(|la| la.first_date() == la.last_date()));
     ///
-    /// let multiple_day_look_ahead: Option<LookAhead> = LookAhead::new(Some("from tomorrow through 11 days after tomorrow".to_string())).unwrap();
-    /// assert!(multiple_day_look_ahead.is_some_and(|la| la.first_date().checked_add_days(Days::new(11)).unwrap() == la.last_date()));
+    /// let multiple_day_look_ahead: Option<LookAhead> = LookAhead::new(
+    ///     Some("from tomorrow through 11 days after tomorrow".to_string())
+    ///     ).unwrap();
+    /// assert!(multiple_day_look_ahead.is_some_and(
+    ///     |la| la.first_date().checked_add_days(Days::new(11)).unwrap() == la.last_date())
+    ///     );
     /// ```
     ///
     /// Error:
@@ -67,8 +73,8 @@ impl LookAhead {
                 let dates = parse_date(&date_string)?;
                 let first_date = dates.iter().next().unwrap();
                 let last_date = dates.iter().last().unwrap();
-                let first_day_timestamp = convert_date_to_timestamp(first_date)?;
-                let last_day_timestamp = convert_date_to_timestamp(last_date)?;
+                let first_day_timestamp = convert_date_to_timestamp(first_date);
+                let last_day_timestamp = convert_date_to_timestamp(last_date);
                 Ok(Some(Self {
                     first_day_timestamp,
                     last_day_timestamp,
@@ -77,6 +83,89 @@ impl LookAhead {
                 }))
             }
         }
+    }
+
+    /// Returns the [`NaiveDate`] of the first day of the look-ahead period.
+    pub fn first_date(&self) -> NaiveDate {
+        self.first_date
+    }
+
+    /// Returns the timestamp of the first day of the look-ahead period.
+    pub fn first_day_timestamp(&self) -> i64 {
+        self.first_day_timestamp
+    }
+
+    /// Return the [`NaiveDate`] of the last day of the look-ahead period.
+    pub fn last_date(&self) -> NaiveDate {
+        self.last_date
+    }
+
+    /// Returns the timestamp of the last day of the look-ahead period.
+    pub fn last_day_timestamp(&self) -> i64 {
+        self.last_day_timestamp
+    }
+}
+
+/// Holds data about a date or a date range. This can be for example a period
+/// in  which to search for meals which the user
+/// explicitly planned so that these can be excluded from meal suggestions.
+/// See section [Getting Meal Suggestions](https://github.com/fleetingbytes/mrot/#getting-meal-suggestions) in the mrot readme.
+///
+/// In the libmrot API `Period` is always used behind an [Option], i.e. `Option<Period>`,
+/// where [None] signals "no period" at all.
+#[derive(Debug, Clone)]
+pub struct Period {
+    first_day_timestamp: i64,
+    last_day_timestamp: i64,
+    first_date: NaiveDate,
+    last_date: NaiveDate,
+}
+
+impl Period {
+    /// Construct a new `Period`. The string argument should be a parsable date expression
+    /// (cf. [parse_date]).
+    ///
+    /// Examples of successfully constructed Option<Periods>:
+    /// ```
+    /// use libmrot::Period;
+    /// use chrono::Days;
+    ///
+    /// let no_period: Option<Period> = None;
+    /// assert!(no_period.is_none());
+    ///
+    /// let one_day_period: Option<Period> = Some(Period::new(
+    ///     "tomorrow"
+    ///     ).unwrap());
+    /// assert!(one_day_period.is_some_and(|p| p.first_date() == p.last_date()));
+    ///
+    /// let multiple_day_period: Option<Period> = Some(Period::new(
+    ///     "from tomorrow through 11 days after tomorrow"
+    ///     ).unwrap());
+    /// assert!(multiple_day_period.is_some_and(
+    ///     |p| p.first_date().checked_add_days(Days::new(11)).unwrap() == p.last_date())
+    ///     );
+    /// ```
+    ///
+    /// Error:
+    /// ```
+    /// use libmrot::{Error, Period};
+    ///
+    /// let unparsable_date = "Christmas Eve 2025";
+    /// let error_result = Period::new(unparsable_date).unwrap_err();
+    /// assert!(matches!(error_result, Error::TwoTimer(_)));
+    /// ```
+    pub fn new(s: &str) -> Result<Self> {
+        let dates = parse_date(s)?;
+        let first_date = dates.iter().next().unwrap();
+        let last_date = dates.iter().last().unwrap();
+        let first_day_timestamp = convert_date_to_timestamp(first_date);
+        let last_day_timestamp = convert_date_to_timestamp(last_date);
+        Ok(Self {
+            first_day_timestamp,
+            last_day_timestamp,
+            first_date: *first_date,
+            last_date: *last_date,
+        })
     }
 
     /// Returns the [`NaiveDate`] of the first day of the look-ahead period.
