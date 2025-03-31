@@ -766,7 +766,7 @@ checksum = "c19937216e9d3aa9956d9bb8dfc0b0c8beb6058fc4f7a4dc4d850edf86a237d6"
 
 [[package]]
 name = "libmrot"
-version = "0.1.0-alpha.12"
+version = "0.1.0-alpha.13"
 dependencies = [
  "chrono",
  "confy",
@@ -841,7 +841,7 @@ dependencies = [
 
 [[package]]
 name = "mrot"
-version = "0.1.0-alpha.12"
+version = "0.1.0-alpha.13"
 dependencies = [
  "clap",
  "clap_complete",
@@ -858,7 +858,7 @@ dependencies = [
 
 [[package]]
 name = "mrot-test-utils"
-version = "0.1.0-alpha.12"
+version = "0.1.0-alpha.13"
 dependencies = [
  "chrono",
  "cucumber",
@@ -871,7 +871,7 @@ dependencies = [
 
 [[package]]
 name = "mrot_config"
-version = "0.1.0-alpha.12"
+version = "0.1.0-alpha.13"
 dependencies = [
  "confy",
  "serde",
