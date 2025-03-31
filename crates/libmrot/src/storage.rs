@@ -384,61 +384,12 @@ impl Storage {
         Ok(naive_dates)
     }
 
-    /// Remove all meals in the given period
+    /// Remove meal records in the given period. Optionally, delete records of one specific meal in
+    /// that period.
     ///
     /// Example:
     /// ```
-    /// use libmrot::{MealRecord, Storage};
-    ///
-    /// // open in-memory storage
-    /// let storage = Storage::open(":memory:").unwrap();
-    ///
-    /// // fill storage with some data
-    /// storage.add_meal_on_dates(
-    ///     "spaghetti",
-    ///     &vec![String::from("from March 1 through March 2")],
-    ///     ).unwrap();
-    /// storage.add_meal_on_dates(
-    ///     "curry",
-    ///     &vec![String::from("from March 3 through March 4")],
-    ///     ).unwrap();
-    ///
-    /// // remove spaghetti in March
-    /// let deleted_records = storage.remove_all("March 2 through March 3").unwrap();
-    ///
-    /// let expected_deleted_records = vec![
-    ///     MealRecord::new("spaghetti", "March 2").unwrap(),
-    ///     MealRecord::new("curry", "March 3").unwrap(),
-    /// ];
-    ///
-    /// assert_eq!(deleted_records, expected_deleted_records);
-    /// ```
-    #[instrument]
-    pub fn remove_all(&self, period: &str) -> Result<Vec<MealRecord>> {
-        let period = LookAhead::new(Some(period.to_string()))?.unwrap();
-        let start = period.first_day_timestamp();
-        let end = period.last_day_timestamp();
-        let mut soon_to_be_removed = self.get_meal_records_between_dates(start, end)?;
-        soon_to_be_removed.sort_by_key(|record| record.timestamp);
-        self.remove_all_meal_records_between_dates(start, end)?;
-        let removed = soon_to_be_removed;
-        Ok(removed)
-    }
-
-    fn remove_all_meal_records_between_dates(&self, start: i64, end: i64) -> Result<()> {
-        let query = "DELETE FROM meals WHERE date >= :start AND date <= :end";
-        let mut statement = self.connection.prepare(query)?;
-        statement
-            .bind_iter::<_, (_, Value)>([(":start", (start).into()), (":end", (end).into())])?;
-        while let Ok(State::Row) = statement.next() {}
-        Ok(())
-    }
-
-    /// Remove a specific meal in the given period.
-    ///
-    /// Example:
-    /// ```
-    /// use libmrot::{MealRecord, Storage};
+    /// use libmrot::{MealRecord, Period, Storage};
     ///
     /// // open in-memory storage
     /// let storage = Storage::open(":memory:").unwrap();
@@ -454,7 +405,8 @@ impl Storage {
     ///     ).unwrap();
     ///
     /// // remove spaghetti in March
-    /// let deleted_records = storage.remove("spaghetti", "March").unwrap();
+    /// let period = Period::new("March").unwrap();
+    /// let deleted_records = storage.remove(period, Some("spaghetti".to_string())).unwrap();
     ///
     /// let expected_deleted_records = vec![
     ///     MealRecord::new("spaghetti", "March 1").unwrap(),
@@ -462,59 +414,42 @@ impl Storage {
     /// ];
     ///
     /// assert_eq!(deleted_records, expected_deleted_records);
+    ///
+    /// // remove all meals on March 3rd
+    /// let period = Period::new("March 3").unwrap();
+    /// let deleted_records = storage.remove(period, None).unwrap();
+    ///
+    /// let expected_deleted_records = vec![
+    ///     MealRecord::new("curry", "March 3").unwrap(),
+    /// ];
+    ///
+    /// assert_eq!(deleted_records, expected_deleted_records);
     /// ```
     #[instrument]
-    pub fn remove(&self, meal: &str, period: &str) -> Result<Vec<MealRecord>> {
-        let period = LookAhead::new(Some(period.to_string()))?.unwrap();
-        let start = period.first_day_timestamp();
-        let end = period.last_day_timestamp();
-        let mut soon_to_be_removed =
-            self.get_meal_records_of_meal_between_dates(meal, start, end)?;
-        soon_to_be_removed.sort_by_key(|record| record.timestamp);
-        self.remove_meal_records_of_meal_between_dates(meal, start, end)?;
-        let removed = soon_to_be_removed;
-        Ok(removed)
-    }
+    pub fn remove(&self, period: Period, option_meal: Option<String>) -> Result<Vec<MealRecord>> {
+        let action_clause = "DELETE FROM meals";
+        let action_params = Vec::new();
 
-    #[instrument(level = "trace")]
-    fn get_meal_records_of_meal_between_dates(
-        &self,
-        meal: &str,
-        start: i64,
-        end: i64,
-    ) -> Result<Vec<MealRecord>> {
-        let query =
-            "SELECT date, meal FROM meals WHERE meal = :meal AND date >= :start AND date <= :end ORDER BY date ASC";
-        let mut statement = self.connection.prepare(query)?;
-        statement.bind_iter::<_, (_, Value)>([
-            (":meal", meal.into()),
-            (":start", start.into()),
-            (":end", end.into()),
-        ])?;
-        let mut records = Vec::new();
-        while let Ok(State::Row) = statement.next() {
-            let timestamp = statement.read::<i64, _>("date")?;
-            let meal = statement.read::<String, _>("meal")?;
-            records.push(MealRecord { meal, timestamp });
+        let condition = match option_meal {
+            None => "WHERE date >= :start AND DATE <= :end",
+            Some(_) => "WHERE meal = :meal AND date >= :start AND DATE <= :end",
+        };
+        let mut condition_params: Vec<(&str, Value)> = vec![
+            (":start", period.first_day_timestamp().into()),
+            (":end", period.last_day_timestamp().into()),
+        ];
+        if let Some(meal) = option_meal {
+            condition_params.push((":meal", meal.into()));
         }
-        Ok(records)
-    }
 
-    fn remove_meal_records_of_meal_between_dates(
-        &self,
-        meal: &str,
-        start: i64,
-        end: i64,
-    ) -> Result<()> {
-        let query = "DELETE FROM meals WHERE meal = :meal AND date >= :start AND date <= :end";
-        let mut statement = self.connection.prepare(query)?;
-        statement.bind_iter::<_, (_, Value)>([
-            (":meal", meal.into()),
-            (":start", start.into()),
-            (":end", end.into()),
-        ])?;
-        while let Ok(State::Row) = statement.next() {}
-        Ok(())
+        let delete_func = || {
+            let records = self.select_records(condition, &condition_params)?;
+            self.manipulate_records(action_clause, &action_params, condition, &condition_params)?;
+            Ok(records)
+        };
+
+        let records = self.sql_transaction(delete_func)?;
+        Ok(records)
     }
 
     /// Rename a meal from *old_name* to *new_name*, optionally rename only in the given [Period].
@@ -561,34 +496,40 @@ impl Storage {
         new_name: &str,
         option_period: Option<Period>,
     ) -> Result<Vec<MealRecord>> {
-        let condition = match option_period {
-            None => "meal = :meal",
-            Some(_) => "meal = :meal AND date >= :start AND date <= :end",
-        };
+        let action_clause = "UPDATE meals SET meal = :new_name";
+        let action_params: Vec<(&str, Value)> = vec![(":new_name", new_name.into())];
 
-        let mut params: Vec<(&str, Value)> = vec![(":meal", old_name.into())];
+        let condition = match option_period {
+            None => "WHERE meal = :meal",
+            Some(_) => "WHERE meal = :meal AND date >= :start AND date <= :end",
+        };
+        let mut condition_params: Vec<(&str, Value)> = vec![(":meal", old_name.into())];
         if let Some(period) = option_period {
-            params.push((":start", period.first_day_timestamp().into()));
-            params.push((":end", period.last_day_timestamp().into()));
+            condition_params.push((":start", period.first_day_timestamp().into()));
+            condition_params.push((":end", period.last_day_timestamp().into()));
         }
 
-        self.update_records(condition, &params, new_name)
+        let update_func = || {
+            let records = self.select_records(condition, &condition_params)?;
+            self.manipulate_records(action_clause, &action_params, condition, &condition_params)?;
+            Ok(records)
+        };
+
+        let records = self.sql_transaction(update_func)?;
+        Ok(records)
     }
 
-    fn update_records(
+    fn select_records(
         &self,
         condition: &str,
-        params: &[(&str, Value)],
-        new_name: &str,
+        selection_params: &[(&str, Value)],
     ) -> Result<Vec<MealRecord>> {
-        self.connection.execute("BEGIN TRANSACTION")?;
-
         let select_query = format!(
-            "SELECT date, meal FROM meals WHERE {} ORDER BY date ASC",
+            "SELECT date, meal FROM meals {} ORDER BY date ASC",
             condition
         );
         let mut select_statement = self.connection.prepare(select_query)?;
-        for &(name, ref value) in params {
+        for &(name, ref value) in selection_params {
             select_statement.bind((name, value))?;
         }
 
@@ -599,14 +540,32 @@ impl Storage {
             records.push(MealRecord { meal, timestamp });
         }
 
-        let update_query = format!("UPDATE meals SET meal = :new_name WHERE {}", condition);
-        let mut update_statement = self.connection.prepare(update_query)?;
-        update_statement.bind((":new_name", new_name))?;
-        for &(name, ref value) in params {
-            update_statement.bind((name, value))?;
-        }
+        Ok(records)
+    }
 
-        update_statement.next()?;
+    fn manipulate_records(
+        &self,
+        action_clause: &str,
+        action_params: &[(&str, Value)],
+        condition: &str,
+        condition_params: &[(&str, Value)],
+    ) -> Result<()> {
+        let query = format!("{} {}", action_clause, condition);
+        let mut statement = self.connection.prepare(query)?;
+        for &(name, ref value) in action_params.into_iter().chain(condition_params) {
+            statement.bind((name, value))?;
+        }
+        statement.next()?;
+        Ok(())
+    }
+
+    fn sql_transaction<F>(&self, func: F) -> Result<Vec<MealRecord>>
+    where
+        F: Fn() -> Result<Vec<MealRecord>>,
+    {
+        self.connection.execute("BEGIN TRANSACTION")?;
+
+        let records = func()?;
 
         self.connection.execute("COMMIT").map_err(|e| {
             let _ = self.connection.execute("ROLLBACK");
