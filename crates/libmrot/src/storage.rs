@@ -372,16 +372,13 @@ impl Storage {
     /// ```
     #[instrument]
     pub fn when(&self, meal: &str) -> Result<Vec<NaiveDate>> {
-        let query = "SELECT date FROM meals WHERE meal = :meal ORDER BY date ASC";
-        let mut statement = self.connection.prepare(query)?;
-        statement.bind((":meal", meal))?;
-        let mut naive_dates: Vec<NaiveDate> = vec![];
-        while let Ok(State::Row) = statement.next() {
-            let timestamp = statement.read::<i64, _>("date")?;
-            let naive_date = convert_to_naive_date(timestamp)?;
-            naive_dates.push(naive_date);
-        }
-        Ok(naive_dates)
+        let condition = "WHERE meal = :meal";
+        let condition_params: Vec<(&str, Value)> = vec![(":meal", meal.into())];
+        let meal_records = self.select_records(condition, &condition_params)?;
+        meal_records
+            .into_iter()
+            .map(|r| convert_to_naive_date(r.timestamp))
+            .collect()
     }
 
     /// Remove meal records in the given period. Optionally, delete records of one specific meal in

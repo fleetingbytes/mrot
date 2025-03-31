@@ -19,6 +19,9 @@ pub use storage::Storage;
 /// Type alias for results with libmrot's [Error].
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Type alias for libmrot's [Period].
+pub type Date = Period;
+
 /// Holds data related to the look-ahead period in which to search for meals which the user
 /// explicitly planned so that they can be excluded from meal suggestions.
 /// See section [Getting Meal Suggestions](https://github.com/fleetingbytes/mrot/#getting-meal-suggestions) in the mrot readme.
@@ -110,9 +113,6 @@ impl LookAhead {
 /// in  which to search for meals which the user
 /// explicitly planned so that these can be excluded from meal suggestions.
 /// See section [Getting Meal Suggestions](https://github.com/fleetingbytes/mrot/#getting-meal-suggestions) in the mrot readme.
-///
-/// In the libmrot API `Period` is always used behind an [Option], i.e. `Option<Period>`,
-/// where [None] signals "no period" at all.
 #[derive(Debug, Clone)]
 pub struct Period {
     first_day_timestamp: i64,
@@ -125,7 +125,7 @@ impl Period {
     /// Construct a new `Period`. The string argument should be a parsable date expression
     /// (cf. [parse_date]).
     ///
-    /// Examples of successfully constructed Option<Periods>:
+    /// Examples of successfully constructed Option<Period>s:
     /// ```
     /// use libmrot::Period;
     /// use chrono::Days;
