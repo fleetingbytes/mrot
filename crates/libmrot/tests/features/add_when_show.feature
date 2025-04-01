@@ -23,13 +23,26 @@ Feature: Add meal, When meal, Show date range
             | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | 2025-02-23, 2025-02-24, 2025-02-25 |
 
      Scenario Outline: Add meal on several dates, ask what meals between dates
-        Given an empty in-memory storage
-        When I add the meal <meal> on the dates <text_dates> to the storage
-        Then the storage, asked for the dates <show_range> returns <meals>
+        Given an in-memory storage with the records
+            | date       | meal                |
+            | 1742774400 | spätzle             |
+            | 1742688000 | spätzle             |
+            | 1742601600 | rougailles saucisse |
+            | 1742515200 | rougailles saucisse |
+            | 1742428800 | bramboráky          |
+            | 1742342400 | bramboráky          |
+            | 1742256000 | gratin à la m. o.   |
+            | 1742169600 | gratin à la m. o.   |
+            | 1742083200 | gratin à la m. o.   |
+            | 1741996800 | tortelloni          |
+            | 1741910400 | flammkuchen         |
+            | 1741824000 | rinderbraten        |
+            | 1741737600 | bolognese           |
+            | 1741651200 | bolognese           |
+        Then the storage, asked to show the meal records in the period <show_period>, returns <meal_records>
 
         Examples:
-            | meal    | text_dates                         | show_range                         | meals                     |
-            | chicken | 2025-02-23                         | 2025-02-23                         | chicken                   |
-            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | 2025-02-23                         | chicken                   |
-            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | from 2025-02-23 to 2025-02-25      | chicken, chicken          |
-            | chicken | 2025-02-23; 2025-02-24; 2025-02-25 | from 2025-02-23 through 2025-02-25 | chicken, chicken, chicken |
+            | show_period                   | meal_records                                                              |
+            | 2025-03-11                    | 1741651200, bolognese                                                     |
+            | 2025-03-12 through 2025-03-14 | 1741737600, bolognese; 1741824000, rinderbraten; 1741910400, flammkuchen  |
+            | 2025-03-22 through 2025-03-24 | 1742601600, rougailles saucisse; 1742688000, spätzle; 1742774400, spätzle |

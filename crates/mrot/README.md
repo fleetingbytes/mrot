@@ -34,13 +34,13 @@ The dates you record in mrot should primarily be thought of as the day on which 
 
 ### Getting Meal Suggestions
 
-When you run the `what` subcommand mrot tries to suggest you the meals which you have not consumed for the longest time. If a meal from long ago matches a meal planned in the near future (by default in the next twelve days starting tomorrow), it is not suggested in order to avoid having the same meal again too soon. This is called the *look-ahead* option and you can configure it or disable it entirely. Independent of this you can pass the names of any meals which you do not want to be suggested, see the *ignore* option below.
+When you run the `what` subcommand mrot tries to suggest you the meals which you have not consumed for the longest time. If a meal from long ago matches a meal planned in the near future (by default in the next twelve days starting tomorrow), it is not suggested in order to avoid having the same meal again too soon. This is called the *ignore period* option and you can configure it or disable it entirely. Independent of this you can pass the names of any meals which you do not want to be suggested, see the *ignore* option below.
 
 The procedure which mrot runs internally is something like this:
 
 * for each unique recorded meal, look up the date when it was last consumed
 * filter out the meals which are on the ignore list
-* filter out the meals which are planned and recorded in advance within the look-ahead period
+* filter out the meals which are planned and recorded in advance within the ignore period
 * limit the number of suggestions according to your configuration or the CLI option
 
 ## Feature Ovewiew
@@ -76,8 +76,8 @@ $ mrot parse-date --output-timestamp "last week"
 ### Getting Cooking Suggestions
 
 * `mrot what` will suggest some meals to cook, taking your past, planned and ignored meals into account
-* `mrot what --look-ahead "from tomorrow to three days after tomorrow"` same as above, but override the configured look-ahead period
-* `mrot what --no-look-ahead` same as above but no look-ahead, thus potentially suggesting any meals you may have planned to cook in the near future.
+* `mrot what --ignore-period "from tomorrow to three days after tomorrow"` same as above, but override the configured ignore period
+* `mrot what --no-ignore-period` same as above but no ignore period, thus potentially suggesting any meals you may have planned to cook in the near future.
 * `mrot what --ignore liver --ignore salad` same as above, ignoring liver and salad (this supersedes your regular ignore list from your mrot configuration)
 * `mrot what --no-ignore` same as above, not taking the ignore list from your mrot configuration into account
 * `mrot what --number 5` same as above, overriding the regular number of meals to suggest. The given number is the upper limit. If you have not recorded enough meals to reach this number of suggestions, mrot will suggest less.
@@ -115,10 +115,10 @@ $ mrot parse-date --output-timestamp "last week"
 ### Configuring Mrot
 
 * `mrot config set what number 5` will configure mrot to suggest five oldest meals (default: 3)
-* `mrot config set what look-ahead "from tomorrow through 5 days after tomorrow"` will configure mrot avoid suggesting meals found in any records in this period
+* `mrot config set what ignore-period "from tomorrow through 5 days after tomorrow"` will configure mrot avoid suggesting meals found in any records in this period
 * `mrot config set show "from the day before yesterday until tomorrow"` will configure mrot to show the meals planned for the specified range
 * `mrot config get what number` will show how many meals is mrot configured to suggest
-* `mrot config get what look-ahead` will show the period meals from which are not to be be suggested
+* `mrot config get what ignore-period` will show the period meals from which are not to be be suggested
 * `mrot config get show` will show the time in which mrot-show will show meals
 * `mrot config ignore add liver` will add liver to the ignore list
 * `mrot config ignore remove salad` will remove salad from the ignore list

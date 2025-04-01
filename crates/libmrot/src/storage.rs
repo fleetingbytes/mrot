@@ -3,7 +3,7 @@
 use crate::{
     convert::{convert_to_naive_date, convert_to_timestamps},
     error::Error,
-    LookAhead, MealRecord, Period, Result,
+    MealRecord, Period, Result,
 };
 use chrono::naive::NaiveDate;
 use rand::seq::IteratorRandom;
@@ -123,7 +123,7 @@ impl Storage {
     ///
     /// Example:
     /// ```
-    /// use libmrot::{LookAhead, MealRecord, Storage};
+    /// use libmrot::{MealRecord, Period, Storage};
     ///
     /// // open in-memory storage
     /// let storage = Storage::open(":memory:").unwrap();
@@ -148,14 +148,14 @@ impl Storage {
     ///
     /// // we are going to ignore the kinds of meals
     /// // which were or will be consumed on these dates:
-    /// let look_ahead: Option<LookAhead> = LookAhead::new(
-    ///     Some("from March 10 through March 22".to_string())
-    ///     ).unwrap();
+    /// let option_period: Option<Period> = Some(Period::new(
+    ///     "from March 10 through March 22"
+    ///     ).unwrap());
     /// // we are also going to ignore spaghetti in general
     /// let ignore = vec![String::from("spaghetti")];
     ///
     /// // get meal suggestions
-    /// let suggestions: Vec<MealRecord> = storage.what(3, look_ahead, ignore).unwrap();
+    /// let suggestions: Vec<MealRecord> = storage.what(3, option_period, ignore).unwrap();
     ///
     /// // we expect the suggestions to contain the records of pizza, steak, lentils and wieners.
     /// // Meat balls were ignored because one of their dates is inside the look_ahead period
@@ -172,10 +172,10 @@ impl Storage {
     pub fn what(
         &self,
         number: u64,
-        look_ahead: Option<LookAhead>,
-        ignore: Vec<String>,
+        option_ignore_period: Option<Period>,
+        ignore_list: Vec<String>,
     ) -> Result<Vec<MealRecord>> {
-        let mut candidates = self.get_meal_candidates(look_ahead, ignore)?;
+        let mut candidates = self.get_meal_candidates(option_ignore_period, ignore_list)?;
         let suggestions = Self::pick_n_meal_records(number as usize, &mut candidates);
         Ok(suggestions)
     }
@@ -183,18 +183,15 @@ impl Storage {
     #[instrument(level = "debug")]
     fn get_meal_candidates(
         &self,
-        look_ahead: Option<LookAhead>,
-        ignore: Vec<String>,
+        option_period: Option<Period>,
+        ignore_list: Vec<String>,
     ) -> Result<Vec<MealRecord>> {
         let mut last_cooked_unique_meals = self.get_last_cooked_unique()?;
-        let planned_meal_records = match look_ahead {
+        let planned_meal_records = match option_period {
             None => Vec::new(),
-            Some(period) => self.get_meal_records_between_dates(
-                period.first_day_timestamp(),
-                period.last_day_timestamp(),
-            )?,
+            Some(period) => self.get_meal_records_in_period(period)?,
         };
-        let mut ignored_meals: Vec<_> = ignore
+        let mut ignored_meals: Vec<_> = ignore_list
             .into_iter()
             .chain(planned_meal_records.into_iter().map(|record| record.meal))
             .collect();
@@ -205,19 +202,13 @@ impl Storage {
     }
 
     #[instrument(level = "trace")]
-    fn get_meal_records_between_dates(&self, start: i64, end: i64) -> Result<Vec<MealRecord>> {
-        let query =
-            "SELECT date, meal FROM meals WHERE date >= :start AND date <= :end ORDER BY date ASC";
-        let mut statement = self.connection.prepare(query)?;
-        statement
-            .bind_iter::<_, (_, Value)>([(":start", (start).into()), (":end", (end).into())])?;
-        let mut records = Vec::new();
-        while let Ok(State::Row) = statement.next() {
-            let timestamp = statement.read::<i64, _>("date")?;
-            let meal = statement.read::<String, _>("meal")?;
-            records.push(MealRecord { meal, timestamp });
-        }
-        Ok(records)
+    fn get_meal_records_in_period(&self, period: Period) -> Result<Vec<MealRecord>> {
+        let condition = "WHERE date >= :start AND date <= :end";
+        let condition_params: Vec<(&str, Value)> = vec![
+            (":start", period.first_day_timestamp().into()),
+            (":end", period.last_day_timestamp().into()),
+        ];
+        self.select_records(condition, &condition_params)
     }
 
     /// Outputs [MealRecord]s with unique meals and their last dates. The result vector is sorted
@@ -335,11 +326,12 @@ impl Storage {
     /// ```
     #[instrument]
     pub fn show(&self, date_range: &str) -> Result<Vec<MealRecord>> {
-        let timestamps = convert_to_timestamps(&vec![String::from(date_range)])?;
+        //let timestamps = convert_to_timestamps(&vec![String::from(date_range)])?;
         // timestamps are guaranteed to be a vector of at least one element, so we can unwrap
-        let start = timestamps.iter().next().unwrap();
-        let end = timestamps.iter().last().unwrap();
-        self.get_meal_records_between_dates(*start, *end)
+        //let start = timestamps.iter().next().unwrap();
+        //let end = timestamps.iter().last().unwrap();
+        let period = Period::new(date_range)?;
+        self.get_meal_records_in_period(period)
     }
 
     /// Show on what dates a meal was recorded.

@@ -3,7 +3,7 @@ use clap::{Command as ClapCommand, CommandFactory, Parser};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
 use directories::ProjectDirs;
-use libmrot::{convert_to_timestamps, parse_date as mrot_parse, LookAhead, Storage};
+use libmrot::{convert_to_timestamps, parse_date as mrot_parse, Period, Storage};
 use mrot_config::MrotConfig;
 use std::io;
 use tracing::{debug, instrument};
@@ -63,36 +63,38 @@ pub fn run() -> Result<()> {
                 }
             };
             debug!("resulting ignore list is {:?}", ignore_list);
-            debug!("what no_look_ahead is {}", what.no_look_ahead);
-            debug!("what look_ahead is {:?}", what.look_ahead);
-            debug!("configured look_ahead is {:?}", cfg.what.look_ahead);
-            let option_look_ahead: Option<LookAhead> = match what.no_look_ahead {
+            debug!("what no_ignore_period is {}", what.no_ignore_period);
+            debug!("what ignore_period is {:?}", what.ignore_period);
+            debug!("configured ignore_period is {:?}", cfg.what.ignore_period);
+            let option_ignore_period: Option<Period> = match what.no_ignore_period {
                 // user explicitly used --no-look-ahead, overriding the Option<String> from the
                 // config with None.
-                // This will result in the None variant of Option<LookAhead>, i.e. no look-ahead.
-                true => LookAhead::new(None)?,
+                // This will result in the None variant of Option<Period>, i.e. no ignore period.
+                true => None,
                 // there may be a look-ahead
-                false => match what.look_ahead {
+                false => match what.ignore_period {
                     // the cli option --look-ahead was not explicitly used, so we use what is in
                     // the config.
                     // The cfg.what.look_ahead value is an Option<String>.
-                    // LookAhead::new(cfg.what.look_ahead)? will be an Option<LookAhead>.
-                    // If the config contains the None variant of Option<String>,
-                    // the result will be the None variant of Option<LookAhead>, i. e. no look-ahead.
-                    // If the config contains a Some variant of Option<String>,
-                    // the result will be the Some variant of Option<LookAhead>, i. e. some look-ahead.
-                    None => LookAhead::new(cfg.what.look_ahead)?,
+                    None => match cfg.what.ignore_period {
+                        // If the config contains the None variant of Option<String>,
+                        // the result will be the None variant of Option<Period>, i. e. no period.
+                        None => None,
+                        // If the config contains a Some variant of Option<String>,
+                        // the result will be the Some variant of Option<Period>, i. e. some period.
+                        Some(ref period) => Some(Period::new(period)?),
+                    },
                     // the cli option --look-ahead was explicitly used. The user wants to override
                     // the Option<String> value from the config.
                     // Here he only has the possibility to override it with a Some variant.
                     // If he wished to override the config value with a None variant,
                     // he should have done it by using the --no-look-ahead cli option
-                    Some(ref date) => LookAhead::new(Some(date.clone()))?,
+                    Some(ref period) => Some(Period::new(period)?),
                 },
             };
-            debug!("resulting look-ahead is {:?}", option_look_ahead);
+            debug!("resulting ignore_period is {:?}", option_ignore_period);
             let storage = open_storage()?;
-            let meals = storage.what(number, option_look_ahead, ignore_list)?;
+            let meals = storage.what(number, option_ignore_period, ignore_list)?;
             debug!("{:?}", meals);
             meals.into_iter().for_each(|meal| println!("{}", meal));
         }
@@ -146,9 +148,12 @@ pub fn run() -> Result<()> {
                         ConfigSetWhatCommand::Number(config_set_what_number) => {
                             cfg.what.number = config_set_what_number.number;
                         }
-                        ConfigSetWhatCommand::LookAhead(config_set_what_look_ahead) => {
-                            verify_look_ahead_value(config_set_what_look_ahead.look_ahead.clone())?;
-                            cfg.what.look_ahead = config_set_what_look_ahead.look_ahead.clone();
+                        ConfigSetWhatCommand::IgnorePeriod(config_set_what_ignore_period) => {
+                            verify_ignore_period_value(
+                                config_set_what_ignore_period.ignore_period.clone(),
+                            )?;
+                            cfg.what.ignore_period =
+                                config_set_what_ignore_period.ignore_period.clone();
                         }
                     },
                     ConfigSetCommand::Show(config_set_show) => {
@@ -163,8 +168,8 @@ pub fn run() -> Result<()> {
                     ConfigGetWhatCommand::Number(_) => {
                         println!("{}", cfg.what.number);
                     }
-                    ConfigGetWhatCommand::LookAhead(_) => {
-                        println!("{:?}", cfg.what.look_ahead);
+                    ConfigGetWhatCommand::IgnorePeriod(_) => {
+                        println!("{:?}", cfg.what.ignore_period);
                     }
                 },
                 ConfigGetCommand::Show(_) => {
@@ -273,7 +278,7 @@ fn print_completions<G: Generator>(generator: G, cmd: &mut ClapCommand) {
     );
 }
 
-fn verify_look_ahead_value(value: Option<String>) -> Result<()> {
+fn verify_ignore_period_value(value: Option<String>) -> Result<()> {
     match value {
         None => Ok(()),
         Some(ref date_expression) => Ok(mrot_parse(date_expression).map(|_| ())?),
