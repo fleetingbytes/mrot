@@ -25,7 +25,7 @@ async fn verify_one_random_meal(world: &mut World, meals: Meals) -> Result<()> {
     let actual_record = world.result_option_mealrecord.as_ref().ok_or(Error::UndefinedValue("storage_random_result".to_string()))?.as_ref().map_err(|e| Error::UnexpectedErrResult(format!("{:?}", e)))?.clone().ok_or(Error::UndefinedValue("the Option in storage_random_result was None".to_string()))?;
     let mut expected_meals_vec = meals.to_vec_string();
     let expected_meal = expected_meals_vec.pop().ok_or(Error::UndefinedValue("did not find any expected meal in the feature file".to_string()))?;
-    assert_eq!(*actual_record.meal, expected_meal, "storage.random returned {:?} but we expected {:?}", actual_record.meal, expected_meal);
+    assert_eq!(*actual_record.meal(), expected_meal, "storage.random returned {:?} but we expected {:?}", actual_record.meal(), expected_meal);
     Ok(())
 }
 
@@ -33,7 +33,7 @@ async fn verify_one_random_meal(world: &mut World, meals: Meals) -> Result<()> {
 async fn verify_random_is_one_of_expected_meals(world: &mut World, meals: Meals) -> Result<()> {
     let actual_record = world.result_option_mealrecord.as_ref().ok_or(Error::UndefinedValue("storage_random_result".to_string()))?.as_ref().map_err(|e| Error::UnexpectedErrResult(format!("{:?}", e)))?.clone().ok_or(Error::UndefinedValue("the Option in storage_random_result was None".to_string()))?;
     let expected_meals_vec = meals.to_vec_string();
-    assert!(expected_meals_vec.contains(&actual_record.meal), "storage.random returned an unexpected meal record");
+    assert!(expected_meals_vec.contains(&actual_record.meal()), "storage.random returned an unexpected meal record");
     Ok(())
 }
 

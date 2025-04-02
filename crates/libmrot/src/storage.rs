@@ -1,10 +1,6 @@
 //! Storage for meal records
 
-use crate::{
-    convert::{convert_to_naive_date, convert_to_timestamps},
-    error::Error,
-    MealRecord, Period, Result,
-};
+use crate::{convert::convert_to_timestamps, error::Error, MealRecord, Period, Result};
 use chrono::naive::NaiveDate;
 use rand::seq::IteratorRandom;
 use sqlite::{Connection, State, Value};
@@ -158,7 +154,7 @@ impl Storage {
     /// let suggestions: Vec<MealRecord> = storage.what(3, option_period, ignore).unwrap();
     ///
     /// // we expect the suggestions to contain the records of pizza, steak, lentils and wieners.
-    /// // Meat balls were ignored because one of their dates is inside the look_ahead period
+    /// // Meat balls were ignored because one of their dates is inside the ignore period
     /// // Spaghetti were ignored by our *ignore* vector,
     /// let expected_suggestions: Vec<MealRecord> = vec![
     ///     MealRecord::new("pizza", "March 5").unwrap(),
@@ -193,7 +189,7 @@ impl Storage {
         };
         let mut ignored_meals: Vec<_> = ignore_list
             .into_iter()
-            .chain(planned_meal_records.into_iter().map(|record| record.meal))
+            .chain(planned_meal_records.into_iter().map(|record| record.meal()))
             .collect();
         ignored_meals.sort();
         ignored_meals.dedup();
@@ -247,14 +243,14 @@ impl Storage {
         while let Ok(State::Row) = statement.next() {
             let timestamp = statement.read::<i64, _>("date")?;
             let meal = statement.read::<String, _>("meal")?;
-            records.push(MealRecord { meal, timestamp });
+            records.push(MealRecord::from_meal_and_timestamp(&meal, timestamp)?);
         }
         Ok(records)
     }
 
     #[instrument(level = "trace")]
     fn filter_meal_records(records: &mut Vec<MealRecord>, ignore: &Vec<String>) -> () {
-        records.retain(|r| !ignore.contains(&r.meal));
+        records.retain(|r| !ignore.contains(&r.meal()));
     }
 
     #[instrument(level = "debug")]
@@ -278,7 +274,7 @@ impl Storage {
     ///
     /// // pick a random meal
     /// let random_pick = storage.random().unwrap().unwrap();
-    /// println!("Let's have {} again, yay!", random_pick.meal);
+    /// println!("Let's have {} again, yay!", random_pick.meal());
     /// ```
     #[instrument]
     pub fn random(&self) -> Result<Option<MealRecord>> {
@@ -367,10 +363,9 @@ impl Storage {
         let condition = "WHERE meal = :meal";
         let condition_params: Vec<(&str, Value)> = vec![(":meal", meal.into())];
         let meal_records = self.select_records(condition, &condition_params)?;
-        meal_records
-            .into_iter()
-            .map(|r| convert_to_naive_date(r.timestamp))
-            .collect()
+        let naive_dates: Vec<NaiveDate> =
+            meal_records.into_iter().map(|r| r.naive_date()).collect();
+        Ok(naive_dates)
     }
 
     /// Remove meal records in the given period. Optionally, delete records of one specific meal in
@@ -526,7 +521,7 @@ impl Storage {
         while let Ok(State::Row) = select_statement.next() {
             let timestamp = select_statement.read::<i64, _>("date")?;
             let meal = select_statement.read::<String, _>("meal")?;
-            records.push(MealRecord { meal, timestamp });
+            records.push(MealRecord::from_meal_and_timestamp(&meal, timestamp)?);
         }
 
         Ok(records)
