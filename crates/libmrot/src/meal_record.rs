@@ -58,7 +58,7 @@ impl MealRecord {
     }
 
     /// Constructs a MealRecord from a meal name and a timestamp.
-    /// The timestamp is quantized to point to the start of its day.
+    /// The timestamp is quantized to the start of its day.
     ///
     /// Example:
     ///
