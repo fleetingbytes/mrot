@@ -9,21 +9,21 @@ use two_timer::TimeError;
 /// Mrot error variants
 #[derive(Debug)]
 pub enum Error {
-    /// Wraps [`std::num::ParseIntError`]
+    /// Wraps [`std::num::ParseIntError`].
     StdNum(ParseIntError),
-    /// Wraps [`std::io::Error`]
+    /// Wraps [`std::io::Error`].
     Io(IoError),
-    /// Wraps [`sqlite::Error`]
+    /// Wraps [`sqlite::Error`].
     Sqlite(SqliteError),
-    /// Wraps [`two_timer::TimeError`]
+    /// Wraps [`two_timer::TimeError`].
     TwoTimer(TimeError),
-    /// A path does not have a parent directory
+    /// A path does not have a parent directory.
     NoParentDirectory,
-    /// Timestamp cannot be converted into [`chrono::DateTime`]
+    /// Timestamp cannot be converted into [`chrono::DateTime`].
     InvalidTimestamp(i64),
-    /// [`MealRecord`] cannot be parsed
+    /// [`MealRecord`] cannot be parsed.
     ParseMealRecordError,
-    /// A date expression parses to more than one date
+    /// A date expression parses to more than one date when it should not.
     MoreThanOneDate(String),
 }
 

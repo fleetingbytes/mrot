@@ -7,7 +7,7 @@ use sqlite::{Connection, State, Value};
 use std::{cmp::min, fmt, path::Path};
 use tracing::{instrument, trace};
 
-/// Storage for meal data.
+/// Storage for meal records.
 pub struct Storage {
     connection: Connection,
     path_string: String,
@@ -30,7 +30,7 @@ impl Storage {
     /// ```
     ///
     /// For testing purposes the special path `:memory:` gives access to an in-memory storage which will
-    /// live as long as the instance of this struct.
+    /// live as long as the returned struct.
     ///
     /// Example:
     /// ```
@@ -110,12 +110,12 @@ impl Storage {
     }
 
     /// Suggest meals to cook.
-    /// Each suggested meal comes as a [MealRecord] with the date of date of its
+    /// Each suggested meal comes as a [`MealRecord`] with the date of date of its
     /// latest consumption.
     ///
     /// Function takes two kinds of filters:
-    /// 1. look_ahead: to ignore the kinds of meals within a specified date range
-    /// 2. ignore: to ignore specific kinds of meals in general
+    /// 1. `option_ignore_period`: optional [`Period`] to ignore the kinds of meals within it
+    /// 2. `ignore`: to ignore specific kinds of meals in general
     ///
     /// Example:
     /// ```
@@ -155,7 +155,7 @@ impl Storage {
     ///
     /// // we expect the suggestions to contain the records of pizza, steak, lentils and wieners.
     /// // Meat balls were ignored because one of their dates is inside the ignore period
-    /// // Spaghetti were ignored by our *ignore* vector,
+    /// // Spaghetti were ignored by our `ignore` vector,
     /// let expected_suggestions: Vec<MealRecord> = vec![
     ///     MealRecord::new("pizza", "March 5").unwrap(),
     ///     MealRecord::new("steak", "March 6").unwrap(),
@@ -207,8 +207,8 @@ impl Storage {
         self.select_records(condition, &condition_params)
     }
 
-    /// Outputs [MealRecord]s with unique meals and their last dates. The result vector is sorted
-    /// by date
+    /// Outputs meal records with unique meals and their respective last dates. The result vector is sorted
+    /// by date.
     ///
     /// Example:
     /// ```
@@ -259,7 +259,7 @@ impl Storage {
         candidates.drain(..).collect()
     }
 
-    /// Samples one random element from all unique recorded meals.
+    /// Samples one random meal record from all unique recorded meals.
     ///
     /// Example:
     /// ```
@@ -275,6 +275,18 @@ impl Storage {
     /// // pick a random meal
     /// let random_pick = storage.random().unwrap().unwrap();
     /// println!("Let's have {} again, yay!", random_pick.meal());
+    /// ```
+    ///
+    /// None:
+    ///
+    /// Returns none if there are no meal records in the storage.
+    /// ```
+    /// use libmrot::Storage;
+    ///
+    /// // open an empty in-memory storage
+    /// let storage = Storage::open(":memory:").unwrap();
+    ///
+    /// assert_eq!(storage.random().unwrap(), None);
     /// ```
     #[instrument]
     pub fn random(&self) -> Result<Option<MealRecord>> {
@@ -335,6 +347,7 @@ impl Storage {
     /// Example:
     /// ```
     /// use libmrot::Storage;
+    /// use chrono::NaiveDate;
     ///
     /// // open in-memory storage
     /// let storage = Storage::open(":memory:").unwrap();
@@ -342,15 +355,21 @@ impl Storage {
     /// // fill storage with some data
     /// storage.add_meal_on_dates(
     ///     "spaghetti",
-    ///     &vec![String::from("from March 1 through March 2")],
+    ///     &vec![String::from("from March 1 through March 2, 2025")],
     ///     ).unwrap();
     /// storage.add_meal_on_dates(
     ///     "curry",
-    ///     &vec![String::from("from March 3 through March 4")],
+    ///     &vec![String::from("from March 3 through March 4, 2025")],
     ///     ).unwrap();
     ///
-    /// // get recorded data
+    /// // get dates on which spaghetti where recorded
     /// let actual_dates = storage.when("spaghetti").unwrap();
+    ///
+    /// // expected dates
+    /// let expected_dates = vec![
+    ///     NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(),
+    ///     NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(),
+    /// ];
     /// actual_dates.into_iter().for_each(|date| println!("{}", date));
     /// ```
     /// will print:
@@ -368,8 +387,8 @@ impl Storage {
         Ok(naive_dates)
     }
 
-    /// Remove meal records in the given period. Optionally, delete records of one specific meal in
-    /// that period.
+    /// Remove all meal records in the given period. Optionally, remove only records of one specific meal in
+    /// that period. Returns the deleted records.
     ///
     /// Example:
     /// ```
@@ -436,7 +455,7 @@ impl Storage {
         Ok(records)
     }
 
-    /// Rename a meal from *old_name* to *new_name*, optionally rename only in the given [Period].
+    /// Rename a meal from *old_name* to *new_name*, optionally rename only in the given period.
     ///
     /// Example:
     /// ```
