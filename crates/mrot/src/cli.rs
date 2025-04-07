@@ -32,6 +32,8 @@ pub(crate) enum Command {
     Unique(UniqueArgs),
     /// Remove records of meals
     Remove(RemoveArgs),
+    /// Rename meals
+    Rename(RenameArgs),
     /// Manage mrot configuration
     #[command(subcommand)]
     Config(ConfigCommand),
@@ -105,6 +107,17 @@ pub(crate) struct RemoveArgs {
     /// meal to remove
     #[arg(short, long)]
     pub(crate) meal: Option<String>,
+}
+
+#[derive(Args)]
+pub(crate) struct RenameArgs {
+    /// Old name of a meal
+    pub(crate) old_name: String,
+    /// New name of a meal
+    pub(crate) new_name: String,
+    /// New name of a meal
+    #[arg(short, long)]
+    pub(crate) period: Option<String>,
 }
 
 #[derive(Subcommand)]

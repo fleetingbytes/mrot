@@ -133,12 +133,27 @@ pub fn run() -> Result<()> {
         }
 
         Command::Remove(remove) => {
-            println!("remove range is {}", remove.range);
-            if let Some(meal) = &remove.meal {
-                println!("remove meal is {}", meal);
-            } else {
-                println!("remove all meals in that range");
-            }
+            let period = Period::new(&remove.range)?;
+            let option_meal = remove.meal.clone();
+            let storage = open_storage()?;
+            let removed_records = storage.remove(period, option_meal)?;
+            removed_records
+                .into_iter()
+                .for_each(|record| println!("{}", record));
+        }
+
+        Command::Rename(rename) => {
+            let storage = open_storage()?;
+            let old_name = &rename.old_name;
+            let new_name = &rename.new_name;
+            let option_period = match rename.period {
+                Some(ref date_string) => Some(Period::new(date_string)?),
+                None => None,
+            };
+            let renamed_records = storage.rename(old_name, new_name, option_period)?;
+            renamed_records
+                .into_iter()
+                .for_each(|record| println!("{}", record));
         }
 
         Command::Config(config) => match config {
