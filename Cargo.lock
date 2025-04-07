@@ -850,7 +850,6 @@ dependencies = [
  "confy",
  "directories 6.0.0",
  "libmrot",
- "mrot_config",
  "serde",
  "tracing",
  "tracing-appender",

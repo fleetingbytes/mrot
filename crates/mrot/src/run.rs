@@ -1,10 +1,9 @@
-use crate::{cli::*, Error, Result, LOG_FILE, PKG_NAME};
+use crate::{cli::*, config::MrotConfig, Error, Result, LOG_FILE, PKG_NAME};
 use clap::{Command as ClapCommand, CommandFactory, Parser};
 use clap_complete::{generate as generate_completions, shells, Generator};
 use clap_complete_nushell::Nushell;
 use directories::ProjectDirs;
 use libmrot::{convert_to_timestamps, parse_date as mrot_parse, Period, Storage};
-use mrot_config::MrotConfig;
 use std::io;
 use tracing::{debug, instrument};
 

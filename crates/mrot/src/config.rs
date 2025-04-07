@@ -1,19 +1,19 @@
-//! Configuration for [mrot].
+//! Configuration for mrot.
 
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Default, Debug, Serialize, Deserialize)]
-pub struct MrotConfig {
-    pub what: What,
-    pub show: Show,
+pub(crate) struct MrotConfig {
+    pub(crate) what: What,
+    pub(crate) show: Show,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct What {
-    pub number: u64,
-    pub ignore: Ignore,
-    pub ignore_period: Option<String>,
+pub(crate) struct What {
+    pub(crate) number: u64,
+    pub(crate) ignore: Ignore,
+    pub(crate) ignore_period: Option<String>,
 }
 
 impl Default for What {
@@ -27,8 +27,8 @@ impl Default for What {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Show {
-    pub range: String,
+pub(crate) struct Show {
+    pub(crate) range: String,
 }
 
 impl Default for Show {
@@ -40,22 +40,22 @@ impl Default for Show {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct Ignore(Vec<String>);
+pub(crate) struct Ignore(Vec<String>);
 
 impl Ignore {
-    pub fn add(&mut self, s: &str) {
+    pub(crate) fn add(&mut self, s: &str) {
         self.0.push(s.to_string())
     }
-    pub fn remove(&mut self, s: &str) {
+    pub(crate) fn remove(&mut self, s: &str) {
         self.0.retain(|i| i != s)
     }
-    pub fn clear(&mut self) {
+    pub(crate) fn clear(&mut self) {
         self.0.clear()
     }
-    pub fn is_empty(&self) -> bool {
+    pub(crate) fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
-    pub fn to_vec_string(&self) -> Vec<String> {
+    pub(crate) fn to_vec_string(&self) -> Vec<String> {
         self.0.clone()
     }
 }
