@@ -1,6 +1,4 @@
-//! This crate is now deprecated.
-//! It was once used to hold the configuration values for the meal rotator app [mrot](https://crates.io/crates/mrot).
-//! Its current form is now fully integrated into the app.
+//! Configuration for [mrot].
 
 use serde::{Deserialize, Serialize};
 use std::fmt;

@@ -2,6 +2,7 @@
 //!
 //! This is a CLI application. It uses [libmrot] and [mrot_config]. See the repository's readme.
 pub(crate) mod cli;
+mod config;
 mod error;
 mod run;
 
