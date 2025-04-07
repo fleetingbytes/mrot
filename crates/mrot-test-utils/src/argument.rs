@@ -3,7 +3,7 @@
 
 use crate::Error;
 use chrono::{naive::NaiveDate, DateTime};
-use libmrot::{LookAhead, MealRecord, Period};
+use libmrot::{MealRecord, Period};
 use std::{fmt, str::FromStr};
 
 const NAIVE_DATE_PARSE_FROM_STRING_FORMAT: &str = "%Y-%m-%d";
@@ -160,33 +160,6 @@ impl FromStr for MealRecords {
 impl fmt::Debug for MealRecords {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(&self.0).finish()
-    }
-}
-
-#[derive(Default)]
-pub struct TextLookAhead(Option<LookAhead>);
-
-impl TextLookAhead {
-    pub fn to_option_lookahead(&self) -> Option<LookAhead> {
-        match self.0 {
-            None => None,
-            Some(ref look_ahead) => Some(look_ahead.clone()),
-        }
-    }
-}
-
-impl FromStr for TextLookAhead {
-    type Err = Error;
-
-    /// Construct a TextLookAhead from a string.
-    /// The string `"None"` constructs TextLookAhead containing the [None] variant of
-    /// `[Option]<[LookAhead]>`.
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let option_look_ahead = match s {
-            "None" => LookAhead::new(None)?,
-            _ => LookAhead::new(Some(String::from(s)))?,
-        };
-        Ok(TextLookAhead(option_look_ahead))
     }
 }
 

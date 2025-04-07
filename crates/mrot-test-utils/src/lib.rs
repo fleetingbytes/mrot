@@ -28,6 +28,7 @@ pub struct World {
     pub parse_result: Option<libmrot::Result<Vec<NaiveDate>>>,
     pub result_vec_mealrecord: Option<libmrot::Result<Vec<MealRecord>>>,
     pub result_option_mealrecord: Option<libmrot::Result<Option<MealRecord>>>,
+    pub result_mealrecord: Option<libmrot::Result<MealRecord>>,
 }
 
 /// Clean-up procedure after each scenario

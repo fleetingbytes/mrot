@@ -34,11 +34,11 @@ Feature: Suggest Meals
             | 1739404800 | šunkafleky         |
             | 1739318400 | gratin à la m. o.  |
             | 1739232000 | gratin à la m. o.  |
-        When I ask for <number> meal suggestions, ignoring <ignore_list> and look-ahead <look_ahead>
+        When I ask for <number> meal suggestions, ignoring <ignore_list> and ignore period <ignore_period>
         Then I get the meal records <records>
 
         Examples:
-            | number | ignore_list                                    | look_ahead                    | records                                                                            |
+            | number | ignore_list                                    | ignore_period                 | records                                                                            |
             | 0      |                                                | None                          |                                                                                    |
             | 1      |                                                | None                          | 1739318400, gratin à la m. o.                                                      |
             | 2      |                                                | None                          | 1739318400, gratin à la m. o.; 1739491200, šunkafleky                              |

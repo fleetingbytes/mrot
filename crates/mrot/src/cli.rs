@@ -32,6 +32,8 @@ pub(crate) enum Command {
     Unique(UniqueArgs),
     /// Remove records of meals
     Remove(RemoveArgs),
+    /// Rename meals
+    Rename(RenameArgs),
     /// Manage mrot configuration
     #[command(subcommand)]
     Config(ConfigCommand),
@@ -70,14 +72,14 @@ pub(crate) struct WhatArgs {
     #[arg(short, long, action = Append)]
     pub(crate) ignore: Option<Vec<String>>,
     /// Ignore meals planned in this time span
-    #[arg(short, long)]
-    pub(crate) look_ahead: Option<String>,
+    #[arg(short = 'p', long)]
+    pub(crate) ignore_period: Option<String>,
     /// Consider also ignored meals
     #[arg(short = 'I', long, action = SetTrue, conflicts_with = "ignore")]
     pub(crate) no_ignore: bool,
     /// Disregard planned meals
-    #[arg(short = 'L', long, action = SetTrue, conflicts_with = "look_ahead")]
-    pub(crate) no_look_ahead: bool,
+    #[arg(short = 'P', long, action = SetTrue, conflicts_with = "ignore_period")]
+    pub(crate) no_ignore_period: bool,
 }
 
 #[derive(Args)]
@@ -107,6 +109,17 @@ pub(crate) struct RemoveArgs {
     pub(crate) meal: Option<String>,
 }
 
+#[derive(Args)]
+pub(crate) struct RenameArgs {
+    /// Old name of a meal
+    pub(crate) old_name: String,
+    /// New name of a meal
+    pub(crate) new_name: String,
+    /// New name of a meal
+    #[arg(short, long)]
+    pub(crate) period: Option<String>,
+}
+
 #[derive(Subcommand)]
 pub(crate) enum ConfigCommand {
     /// Set configuration values
@@ -134,7 +147,7 @@ pub(crate) enum ConfigSetWhatCommand {
     /// Set the max number of meals suggested
     Number(ConfigSetWhatNumberArgs),
     /// Set the number of days to look ahead for planned meals
-    LookAhead(ConfigSetWhatLookAheadArgs),
+    IgnorePeriod(ConfigSetWhatIgnorePeriodArgs),
 }
 
 #[derive(Args)]
@@ -144,10 +157,10 @@ pub(crate) struct ConfigSetWhatNumberArgs {
 }
 
 #[derive(Args)]
-pub(crate) struct ConfigSetWhatLookAheadArgs {
+pub(crate) struct ConfigSetWhatIgnorePeriodArgs {
     /// Optional string with a date expression describing the date or date range for look-ahead.
     /// Enter no string at all (not even an empty string) to configure no look-ahead.
-    pub(crate) look_ahead: Option<String>,
+    pub(crate) ignore_period: Option<String>,
 }
 
 #[derive(Args)]
@@ -170,14 +183,14 @@ pub(crate) enum ConfigGetWhatCommand {
     /// Max number of meals to suggest
     Number(ConfigGetWhatNumberArgs),
     /// Days to look ahead for planned meals
-    LookAhead(ConfigGetWhatLookAheadArgs),
+    IgnorePeriod(ConfigGetWhatIgnorePeriodArgs),
 }
 
 #[derive(Args)]
 pub(crate) struct ConfigGetWhatNumberArgs;
 
 #[derive(Args)]
-pub(crate) struct ConfigGetWhatLookAheadArgs;
+pub(crate) struct ConfigGetWhatIgnorePeriodArgs;
 
 #[derive(Args)]
 pub(crate) struct ConfigGetShowArgs;
