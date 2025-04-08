@@ -6,6 +6,7 @@ edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
 description = "Meal rotator. Record the meals you consume and get suggestions what to cook next."
+documentation.workspace = true
 repository.workspace = true
 license.workspace = true
 keywords.workspace = true
