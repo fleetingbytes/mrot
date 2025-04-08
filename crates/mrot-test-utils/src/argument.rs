@@ -8,6 +8,7 @@ use std::{fmt, str::FromStr};
 
 const NAIVE_DATE_PARSE_FROM_STRING_FORMAT: &str = "%Y-%m-%d";
 
+/// Holds strings which are parsable date expressions
 #[derive(Default)]
 pub struct TextDate(String);
 
@@ -25,6 +26,7 @@ impl fmt::Debug for TextDate {
     }
 }
 
+/// Holds multiple [`TextDate`]s.
 #[derive(Default)]
 pub struct TextDates(Vec<TextDate>);
 
@@ -49,6 +51,7 @@ impl fmt::Debug for TextDates {
     }
 }
 
+/// Holds multiple [`NaiveDates`].
 #[derive(Default)]
 pub struct NaiveDates(Vec<NaiveDate>);
 
@@ -78,6 +81,7 @@ impl fmt::Debug for NaiveDates {
     }
 }
 
+/// Holds multiple strings which are meals
 #[derive(Default)]
 pub struct Meals(Vec<String>);
 
@@ -102,6 +106,7 @@ impl fmt::Debug for Meals {
     }
 }
 
+/// By this we transform a timestamp string to a [`NaiveDate`] string.
 #[derive(Default)]
 pub struct DateString(String);
 
@@ -132,6 +137,7 @@ impl fmt::Display for DateString {
     }
 }
 
+/// Holds multiple [`MealRecord`]s.
 #[derive(Default)]
 pub struct MealRecords(Vec<MealRecord>);
 
@@ -163,6 +169,7 @@ impl fmt::Debug for MealRecords {
     }
 }
 
+/// Wraps a [`Period`] so we can create it from a string from the feature files.
 #[derive(Default)]
 pub struct WrappedPeriod(Option<Period>);
 

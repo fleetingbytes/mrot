@@ -1,4 +1,4 @@
-//! Library with helper functions and constructs used in the mrot test code
+//! Library with helper functions and constructs used in the mrot test code.
 
 mod error;
 pub mod argument;
@@ -17,6 +17,7 @@ use std::{io, path::Path};
 use libmrot::{Storage, MealRecord};
 use chrono::NaiveDate;
 
+/// Result type alias with mrot-test-util's Error.
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// World for cucumber tests

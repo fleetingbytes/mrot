@@ -12,7 +12,7 @@ By using the *add* subcommand you tell mrot what meal your family consumed on wh
 
 ### Examples:
 
-Record that you had spaghetti today. The cli option `--date` defaults to `"tomorrow"`, so there is no need to explicitly use it here:
+Record that you had spaghetti today. The cli option `--date` defaults to `"today"`, so there is no need to explicitly use it here:
 ```sh
 $ mrot add spaghetti
 ```

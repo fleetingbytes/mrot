@@ -128,7 +128,7 @@ pub fn run() -> Result<()> {
             let unique_meals = storage.get_last_cooked_unique()?;
             unique_meals
                 .into_iter()
-                .for_each(|record| println!("{}", record));
+                .for_each(|record| println!("{}", record.meal()));
         }
 
         Command::Remove(remove) => {

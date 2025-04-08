@@ -37,6 +37,7 @@ pub async fn storage_show_meal_records(world: &mut World, show_range: String, ex
     Ok(())
 }
 
+/// Checks the dates of when a meal was consumed
 #[then(regex = r"^the storage, asked when (?P<meal>.*) was consumed, returns (?P<naive_dates>.*)$")]
 pub async fn storage_when_meal(world: &mut World, meal: String, expected_naive_dates: NaiveDates) -> Result<()> {
     let storage = world.storage.as_ref().ok_or(Error::UndefinedValue("storage".to_string()))?;
