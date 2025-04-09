@@ -158,8 +158,8 @@ pub(crate) struct ConfigSetWhatNumberArgs {
 
 #[derive(Args)]
 pub(crate) struct ConfigSetWhatIgnorePeriodArgs {
-    /// Optional string with a date expression describing the date or date range for look-ahead.
-    /// Enter no string at all (not even an empty string) to configure no look-ahead.
+    /// Optional string with a date expression describing the date or date range for the ignore
+    /// period. Enter no string at all (not even an empty string) to configure no ignore period.
     pub(crate) ignore_period: Option<String>,
 }
 

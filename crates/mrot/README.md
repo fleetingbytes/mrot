@@ -132,15 +132,19 @@ $ mrot parse-date --output-timestamp "April 6th through April 10th, 2025"
 ### Configuring Mrot
 
 * `mrot config set what number 5` will configure mrot to suggest five oldest meals (default: 3)
-* `mrot config set what ignore-period "from tomorrow through 5 days after tomorrow"` will configure mrot avoid suggesting meals found in any records in this period
+* `mrot config set what ignore-period "from tomorrow through 5 days after tomorrow"` will configure mrot avoid suggesting meals found in any records in this period. (Default is `"from tomorrow through 11 days after tomorrow"`.)
 * `mrot config set show "from the day before yesterday until tomorrow"` will configure mrot to show the meals planned for the specified range
-* `mrot config get what number` will show how many meals is mrot configured to suggest
-* `mrot config get what ignore-period` will show the period meals from which are not to be be suggested
+* `mrot config get what number` will show how many meals is mrot configured to suggest.
+* `mrot config get what ignore-period` will show the period meals from which are not to be be suggested. 
 * `mrot config get show` will show the time in which mrot-show will show meals
 * `mrot config ignore add liver` will add liver to the ignore list
 * `mrot config ignore remove salad` will remove salad from the ignore list
 * `mrot config ignore show` will list the ignored meals
 * `mrot config ignore clear` will remove everything from the ignore list
+
+#### Disable Ignore Period
+
+To disable the ignore period for meal suggestions, execute `mrot config set what ignore-period` with no further argument.
 
 #### Restoring Default Configuration
 

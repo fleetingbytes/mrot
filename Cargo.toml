@@ -4,7 +4,7 @@ members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version = "1.85"
 authors = ["Sven Siegmund <sven.siegmund@gmail.com>"]
@@ -17,7 +17,7 @@ keywords = ["tools", "tracking", "meal", "cooking", "calendar"]
 categories = ["command-line-utilities"]
 
 [workspace.dependencies]
-libmrot = { path = "crates/libmrot", version = "0.1.0" }
+libmrot = { path = "crates/libmrot", version = "0.1.1" }
 mrot-test-utils = { path = "crates/mrot-test-utils" }
 
 chrono = "0.4"
